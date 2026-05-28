@@ -1,6 +1,6 @@
 import { t, onLocaleChange, renderTextWithDropCap } from './i18n';
 import { RUN_LENGTH, type Enemy } from './enemies';
-import type { PlayerStats } from './state';
+import { combatStatLines, type PlayerStats } from './state';
 
 export interface EncounterProps {
   enemy: Enemy;
@@ -50,6 +50,9 @@ export function mountEncounter(host: HTMLElement, props: EncounterProps): () => 
             <div class="stat-row"><dt data-i18n="stat_hp"></dt><dd>${player.hp} / ${player.maxHP}</dd></div>
             <div class="stat-row"><dt data-i18n="stat_atk"></dt><dd>${formatAtk(player.atkMult)}</dd></div>
             <div class="stat-row"><dt data-i18n="stat_level"></dt><dd>${player.level}</dd></div>
+            ${combatStatLines(player)
+              .map((s) => `<div class="stat-row"><dt data-i18n="${s.key}"></dt><dd>${s.value}</dd></div>`)
+              .join('')}
           </dl>
         </div>
       </div>

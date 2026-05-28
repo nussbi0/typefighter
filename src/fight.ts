@@ -186,7 +186,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     state.wordCount = wordCount;
     state.typed = '';
     state.wordSpawnedAt = performance.now();
-    state.wordDuration = Math.max(MIN_DURATION_MS, phrase.length * currentMsPerChar);
+    state.wordDuration = Math.max(MIN_DURATION_MS, phrase.length * currentMsPerChar * player.timeFactor);
     if (firstSpawnAt === 0) firstSpawnAt = state.wordSpawnedAt;
     renderWord();
     els.word.classList.add('active');
@@ -262,11 +262,15 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     const elapsed = performance.now() - state.wordSpawnedAt;
     const progress = elapsed / state.wordDuration;
     const tier = classifyTier(progress);
-    const comboMult = ATTACK_COMBO_MULT[state.wordCount] ?? 1;
-    const dmg = Math.round(BASE_DAMAGE * TIER_MULT[tier] * comboMult * player.atkMult);
+    let comboMult = ATTACK_COMBO_MULT[state.wordCount] ?? 1;
+    if (state.wordCount > 1) comboMult += player.comboBonus;
+    let dmg = Math.round(BASE_DAMAGE * TIER_MULT[tier] * comboMult * player.atkMult);
+    const crit = Math.random() < player.critChance;
+    if (crit) dmg *= 2;
     state.enemyHP = Math.max(0, state.enemyHP - dmg);
-    showHit('enemy', dmg, tier);
+    showHit('enemy', dmg, tier, crit);
     hitFlash(els.enemyAvatar);
+    applyHeal(Math.round(dmg * player.lifesteal) + player.regen);
     state.word = null;
     state.typed = '';
     state.wordCount = 1;
@@ -279,6 +283,14 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     } else {
       scheduleSpawn();
     }
+  }
+
+  function applyHeal(amount: number) {
+    if (amount <= 0) return;
+    const before = state.playerHP;
+    state.playerHP = Math.min(player.maxHP, state.playerHP + amount);
+    const applied = state.playerHP - before;
+    if (applied > 0) showHeal(applied);
   }
 
   function loop() {
@@ -304,7 +316,8 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
 
   function enemyHits() {
     const dmgMult = PLAYER_DMG_COMBO_MULT[state.wordCount] ?? 1;
-    const dmg = Math.round(enemy.hitDamage * dmgMult);
+    const raw = Math.round(enemy.hitDamage * dmgMult);
+    const dmg = Math.max(1, raw - player.defense);
     state.playerHP = Math.max(0, state.playerHP - dmg);
     showHit('player', dmg);
     hitFlash(els.playerAvatar);
@@ -321,22 +334,32 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     }
   }
 
-  function showHit(who: 'player' | 'enemy', dmg: number, tier?: Tier) {
+  function showHit(who: 'player' | 'enemy', dmg: number, tier?: Tier, crit = false) {
     const node = document.createElement('div');
     node.className = `damage damage-${who}`;
     if (tier && tier !== 'good') node.classList.add(`tier-${tier}`);
+    if (crit) node.classList.add('crit');
     const tierLabel = tier === 'perfect' ? t('tier_perfect') : tier === 'great' ? t('tier_great') : '';
+    const amountText = crit ? `-${dmg} ✦` : `-${dmg}`;
     if (tierLabel) {
       const label = document.createElement('span');
       label.className = 'tier-label';
       label.textContent = tierLabel;
       const amount = document.createElement('span');
       amount.className = 'tier-amount';
-      amount.textContent = `-${dmg}`;
+      amount.textContent = amountText;
       node.append(label, amount);
     } else {
-      node.textContent = `-${dmg}`;
+      node.textContent = amountText;
     }
+    els.floater.appendChild(node);
+    setTimeout(() => node.remove(), 1000);
+  }
+
+  function showHeal(amount: number) {
+    const node = document.createElement('div');
+    node.className = 'heal heal-player';
+    node.textContent = `+${amount}`;
     els.floater.appendChild(node);
     setTimeout(() => node.remove(), 1000);
   }

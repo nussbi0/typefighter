@@ -1,10 +1,13 @@
 import { t, onLocaleChange, renderTextWithDropCap } from './i18n';
-import { upgrades, type PlayerStats, type Upgrade } from './state';
+import { combatStatLines, drawBoons, type PlayerStats, type Upgrade } from './state';
 
 export interface LevelUpProps {
   player: PlayerStats;
   onChosen: () => void;
 }
+
+const DRAW_COUNT = 3;
+const MAX_REROLLS = 1;
 
 export function mountLevelUp(host: HTMLElement, props: LevelUpProps): () => void {
   const { player, onChosen } = props;
@@ -12,47 +15,73 @@ export function mountLevelUp(host: HTMLElement, props: LevelUpProps): () => void
   host.innerHTML = `
     <div class="scene levelup">
       <h2 class="levelup-title with-drop-cap" data-i18n="levelup_title"></h2>
-      <dl class="hero-stats-strip">
-        <div class="stat-chip">
-          <dt data-i18n="stat_hp"></dt>
-          <dd>${player.hp} / ${player.maxHP}</dd>
-        </div>
-        <div class="stat-chip">
-          <dt data-i18n="stat_atk"></dt>
-          <dd>${player.atkMult.toFixed(2)}×</dd>
-        </div>
-        <div class="stat-chip">
-          <dt data-i18n="stat_level"></dt>
-          <dd>${player.level}</dd>
-        </div>
-      </dl>
-      <div class="boon-grid"></div>
+      <dl class="hero-stats-strip" data-strip></dl>
+      <div class="boon-grid" data-grid></div>
+      <button class="reroll-button" type="button" data-reroll></button>
     </div>
   `;
 
   const root = host.querySelector('.levelup') as HTMLElement;
-  const grid = root.querySelector('.boon-grid') as HTMLElement;
+  const strip = root.querySelector('[data-strip]') as HTMLElement;
+  const grid = root.querySelector('[data-grid]') as HTMLElement;
+  const rerollBtn = root.querySelector('[data-reroll]') as HTMLButtonElement;
 
-  upgrades.forEach((up, i) => {
-    const card = document.createElement('button');
-    card.className = 'boon-card';
-    card.type = 'button';
-    card.dataset.upgrade = up.id;
-    card.innerHTML = `
-      <span class="corner corner-tl"></span>
-      <span class="corner corner-tr"></span>
-      <span class="corner corner-bl"></span>
-      <span class="corner corner-br"></span>
-      <span class="boon-shortcut" aria-hidden="true">${i + 1}</span>
-      <div class="boon-icon">${up.icon}</div>
-      <div class="boon-name with-drop-cap" data-i18n="${up.nameKey}"></div>
-      <div class="boon-desc" data-i18n="${up.descKey}"></div>
-    `;
-    card.addEventListener('click', () => pick(up));
-    grid.appendChild(card);
-  });
-
+  let current: Upgrade[] = drawBoons(DRAW_COUNT);
+  let rerollsLeft = MAX_REROLLS;
   let resolved = false;
+
+  function renderStrip() {
+    const base = [
+      { key: 'stat_hp', value: `${player.hp} / ${player.maxHP}` },
+      { key: 'stat_atk', value: `${player.atkMult.toFixed(2)}×` },
+      { key: 'stat_level', value: String(player.level) },
+    ];
+    const all = [...base, ...combatStatLines(player)];
+    strip.innerHTML = all
+      .map(
+        (s) =>
+          `<div class="stat-chip"><dt data-i18n="${s.key}"></dt><dd>${s.value}</dd></div>`
+      )
+      .join('');
+  }
+
+  function renderBoons() {
+    grid.innerHTML = '';
+    current.forEach((up, i) => {
+      const card = document.createElement('button');
+      card.className = 'boon-card';
+      card.type = 'button';
+      card.dataset.upgrade = up.id;
+      card.innerHTML = `
+        <span class="corner corner-tl"></span>
+        <span class="corner corner-tr"></span>
+        <span class="corner corner-bl"></span>
+        <span class="corner corner-br"></span>
+        <span class="boon-shortcut" aria-hidden="true">${i + 1}</span>
+        <div class="boon-icon">${up.icon}</div>
+        <div class="boon-name with-drop-cap" data-i18n="${up.nameKey}"></div>
+        <div class="boon-desc" data-i18n="${up.descKey}"></div>
+      `;
+      card.addEventListener('click', () => pick(up));
+      grid.appendChild(card);
+    });
+  }
+
+  function renderReroll() {
+    rerollBtn.textContent = t('levelup_reroll', { n: rerollsLeft });
+    rerollBtn.disabled = rerollsLeft <= 0;
+  }
+
+  function reroll() {
+    if (rerollsLeft <= 0 || resolved) return;
+    rerollsLeft -= 1;
+    current = drawBoons(DRAW_COUNT);
+    renderBoons();
+    renderReroll();
+    applyI18n();
+    (grid.querySelector('.boon-card') as HTMLButtonElement | null)?.focus();
+  }
+
   function pick(up: Upgrade) {
     if (resolved) return;
     resolved = true;
@@ -60,7 +89,7 @@ export function mountLevelUp(host: HTMLElement, props: LevelUpProps): () => void
     onChosen();
   }
 
-  function applyAll() {
+  function applyI18n() {
     root.querySelectorAll<HTMLElement>('[data-i18n]').forEach((el) => {
       const text = t(el.dataset.i18n!);
       if (el.classList.contains('with-drop-cap')) {
@@ -72,15 +101,27 @@ export function mountLevelUp(host: HTMLElement, props: LevelUpProps): () => void
   }
 
   function onKey(e: KeyboardEvent) {
-    const idx = ['1', '2', '3'].indexOf(e.key);
-    if (idx >= 0 && upgrades[idx]) {
+    if (e.key.toLowerCase() === 'r') {
       e.preventDefault();
-      pick(upgrades[idx]);
+      reroll();
+      return;
+    }
+    const idx = ['1', '2', '3'].indexOf(e.key);
+    if (idx >= 0 && current[idx]) {
+      e.preventDefault();
+      pick(current[idx]);
     }
   }
 
-  applyAll();
-  const offLocale = onLocaleChange(applyAll);
+  renderStrip();
+  renderBoons();
+  renderReroll();
+  applyI18n();
+  const offLocale = onLocaleChange(() => {
+    renderReroll();
+    applyI18n();
+  });
+  rerollBtn.addEventListener('click', reroll);
   document.addEventListener('keydown', onKey);
   (grid.querySelector('.boon-card') as HTMLButtonElement | null)?.focus();
 
