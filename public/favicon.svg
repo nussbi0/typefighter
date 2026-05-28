@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect x="2" y="2" width="60" height="60" rx="12" fill="#1f1408"/>
+  <rect x="3.5" y="3.5" width="57" height="57" rx="10.5" fill="none" stroke="#8a6622" stroke-width="2"/>
+  <defs>
+    <g id="sword">
+      <polygon points="32,7 35.5,16 35.5,40 28.5,40 28.5,16" fill="#f3c54a" stroke="#8a6622" stroke-width="1"/>
+      <rect x="21" y="39.5" width="22" height="4.5" rx="2" fill="#921e1e"/>
+      <rect x="29.5" y="44" width="5" height="9" fill="#6a0f0f"/>
+      <circle cx="32" cy="55" r="3.2" fill="#d49b25"/>
+    </g>
+  </defs>
+  <use href="#sword" transform="rotate(45 32 32)"/>
+  <use href="#sword" transform="rotate(-45 32 32)"/>
+</svg>
