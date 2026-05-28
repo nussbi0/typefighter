@@ -1026,6 +1026,26 @@ html, body {
 
 .boon-card:focus-visible { outline-width: 2px; }
 
+.boon-card.favored {
+  border-color: var(--gold-dim);
+}
+
+.boon-favored {
+  margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  border: 1px solid var(--gold-dim);
+  border-radius: 999px;
+}
+
 .boon-icon {
   font-family: var(--font-display);
   font-size: 48px;
@@ -1191,11 +1211,14 @@ html, body {
 .boon-name .drop-cap { font-size: 0.85em; }
 .branch-name .drop-cap { font-size: 0.85em; }
 .branch-modifier-name .drop-cap { font-size: 0.85em; }
+.class-name .drop-cap { font-size: 0.85em; }
 .levelup-title .drop-cap { font-size: 0.92em; }
 .runover-title .drop-cap { font-size: 0.94em; }
 .branch-title .drop-cap { font-size: 0.92em; }
+.classselect-title .drop-cap { font-size: 0.92em; }
 
-.branch-title {
+.branch-title,
+.classselect-title {
   margin: 0;
   font-family: var(--font-display);
   font-size: 40px;
@@ -1209,7 +1232,8 @@ html, body {
   align-items: center;
 }
 
-.branch-subtitle {
+.branch-subtitle,
+.classselect-subtitle {
   margin: 0;
   font-family: var(--font-body);
   font-size: 19px;
@@ -1226,7 +1250,16 @@ html, body {
   margin-top: 8px;
 }
 
-.branch-card {
+.class-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.branch-card,
+.class-card {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -1247,15 +1280,19 @@ html, body {
 }
 
 .branch-card:hover,
-.branch-card:focus-visible {
+.branch-card:focus-visible,
+.class-card:hover,
+.class-card:focus-visible {
   transform: translateY(-3px);
   outline-color: var(--gold-bright);
   box-shadow: 0 14px 32px rgba(20, 12, 4, 0.6);
 }
 
-.branch-card:focus-visible { outline-width: 2px; }
+.branch-card:focus-visible,
+.class-card:focus-visible { outline-width: 2px; }
 
-.branch-avatar {
+.branch-avatar,
+.class-avatar {
   font-size: 70px;
   width: 102px;
   height: 102px;
@@ -1267,7 +1304,8 @@ html, body {
   border: 1px solid var(--panel-border);
 }
 
-.branch-name {
+.branch-name,
+.class-name {
   font-family: var(--font-display);
   font-size: 20px;
   font-weight: 700;
@@ -1276,6 +1314,19 @@ html, body {
   color: var(--crimson);
   display: inline-flex;
   align-items: center;
+}
+
+.class-desc {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-style: italic;
+  color: var(--ink-light);
+  line-height: 1.4;
+}
+
+.class-stats {
+  margin: 2px 0 0;
+  align-self: center;
 }
 
 .branch-stats {
@@ -1347,4 +1398,7 @@ html, body {
   .branch-grid { grid-template-columns: 1fr; gap: 16px; }
   .branch-title { font-size: 28px; }
   .branch-avatar { font-size: 56px; width: 84px; height: 84px; }
+  .class-grid { grid-template-columns: 1fr; gap: 16px; }
+  .classselect-title { font-size: 28px; }
+  .class-avatar { font-size: 56px; width: 84px; height: 84px; }
 }

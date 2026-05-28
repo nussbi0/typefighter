@@ -1,4 +1,5 @@
 import { findEnemy, RUN_LENGTH, type Enemy } from './enemies';
+import type { HeroClass } from './classes';
 
 export interface PlayerStats {
   maxHP: number;
@@ -17,6 +18,7 @@ export type Modifier = 'refuge' | 'empower';
 
 export interface RunState {
   player: PlayerStats;
+  heroClass: HeroClass;
   fightNumber: number;
   defeated: number;
   upcomingEnemy: Enemy;
@@ -26,20 +28,31 @@ export interface RunState {
 
 const STARTING_HP = 100;
 
-export function newRun(): RunState {
+function baseStats(): PlayerStats {
   return {
-    player: {
-      maxHP: STARTING_HP,
-      hp: STARTING_HP,
-      atkMult: 1.0,
-      level: 1,
-      defense: 0,
-      critChance: 0,
-      lifesteal: 0,
-      comboBonus: 0,
-      timeFactor: 1.0,
-      regen: 0,
-    },
+    maxHP: STARTING_HP,
+    hp: STARTING_HP,
+    atkMult: 1.0,
+    level: 1,
+    defense: 0,
+    critChance: 0,
+    lifesteal: 0,
+    comboBonus: 0,
+    timeFactor: 1.0,
+    regen: 0,
+  };
+}
+
+export function classPreview(heroClass: HeroClass): PlayerStats {
+  const p = { ...baseStats(), ...heroClass.stats };
+  p.hp = p.maxHP;
+  return p;
+}
+
+export function newRun(heroClass: HeroClass): RunState {
+  return {
+    player: classPreview(heroClass),
+    heroClass,
     fightNumber: 1,
     defeated: 0,
     upcomingEnemy: findEnemy('goblin'),
@@ -195,11 +208,26 @@ export const upgrades: Upgrade[] = [
   },
 ];
 
-export function drawBoons(count: number): Upgrade[] {
-  const pool = [...upgrades];
-  for (let i = pool.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [pool[i], pool[j]] = [pool[j], pool[i]];
+const FAVORED_WEIGHT = 3;
+
+export function drawBoons(count: number, favored: string[] = []): Upgrade[] {
+  const favoredSet = new Set(favored);
+  const remaining = upgrades.map((u) => ({ u, w: favoredSet.has(u.id) ? FAVORED_WEIGHT : 1 }));
+  const picked: Upgrade[] = [];
+  const n = Math.min(count, remaining.length);
+  while (picked.length < n) {
+    const total = remaining.reduce((s, e) => s + e.w, 0);
+    let r = Math.random() * total;
+    let idx = remaining.length - 1;
+    for (let i = 0; i < remaining.length; i++) {
+      r -= remaining[i].w;
+      if (r < 0) {
+        idx = i;
+        break;
+      }
+    }
+    picked.push(remaining[idx].u);
+    remaining.splice(idx, 1);
   }
-  return pool.slice(0, Math.min(count, pool.length));
+  return picked;
 }

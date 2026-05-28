@@ -3,6 +3,7 @@ import { combatStatLines, drawBoons, type PlayerStats, type Upgrade } from './st
 
 export interface LevelUpProps {
   player: PlayerStats;
+  favoredBoons: string[];
   onChosen: () => void;
 }
 
@@ -10,7 +11,7 @@ const DRAW_COUNT = 3;
 const MAX_REROLLS = 1;
 
 export function mountLevelUp(host: HTMLElement, props: LevelUpProps): () => void {
-  const { player, onChosen } = props;
+  const { player, favoredBoons, onChosen } = props;
 
   host.innerHTML = `
     <div class="scene levelup">
@@ -26,7 +27,7 @@ export function mountLevelUp(host: HTMLElement, props: LevelUpProps): () => void
   const grid = root.querySelector('[data-grid]') as HTMLElement;
   const rerollBtn = root.querySelector('[data-reroll]') as HTMLButtonElement;
 
-  let current: Upgrade[] = drawBoons(DRAW_COUNT);
+  let current: Upgrade[] = drawBoons(DRAW_COUNT, favoredBoons);
   let rerollsLeft = MAX_REROLLS;
   let resolved = false;
 
@@ -48,8 +49,9 @@ export function mountLevelUp(host: HTMLElement, props: LevelUpProps): () => void
   function renderBoons() {
     grid.innerHTML = '';
     current.forEach((up, i) => {
+      const favored = favoredBoons.includes(up.id);
       const card = document.createElement('button');
-      card.className = 'boon-card';
+      card.className = favored ? 'boon-card favored' : 'boon-card';
       card.type = 'button';
       card.dataset.upgrade = up.id;
       card.innerHTML = `
@@ -61,6 +63,7 @@ export function mountLevelUp(host: HTMLElement, props: LevelUpProps): () => void
         <div class="boon-icon">${up.icon}</div>
         <div class="boon-name with-drop-cap" data-i18n="${up.nameKey}"></div>
         <div class="boon-desc" data-i18n="${up.descKey}"></div>
+        ${favored ? '<div class="boon-favored">✦ <span data-i18n="boon_favored"></span></div>' : ''}
       `;
       card.addEventListener('click', () => pick(up));
       grid.appendChild(card);
@@ -75,7 +78,7 @@ export function mountLevelUp(host: HTMLElement, props: LevelUpProps): () => void
   function reroll() {
     if (rerollsLeft <= 0 || resolved) return;
     rerollsLeft -= 1;
-    current = drawBoons(DRAW_COUNT);
+    current = drawBoons(DRAW_COUNT, favoredBoons);
     renderBoons();
     renderReroll();
     applyI18n();

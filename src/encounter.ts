@@ -5,6 +5,7 @@ import { combatStatLines, type PlayerStats } from './state';
 export interface EncounterProps {
   enemy: Enemy;
   player: PlayerStats;
+  playerSprite: string;
   encounterNumber: number;
   appliedHeal?: number;
   appliedMaxHP?: number;
@@ -12,7 +13,7 @@ export interface EncounterProps {
 }
 
 export function mountEncounter(host: HTMLElement, props: EncounterProps): () => void {
-  const { enemy, player, encounterNumber, appliedHeal = 0, appliedMaxHP = 0, onStart } = props;
+  const { enemy, player, playerSprite, encounterNumber, appliedHeal = 0, appliedMaxHP = 0, onStart } = props;
 
   host.innerHTML = `
     <div class="scene encounter">
@@ -44,7 +45,7 @@ export function mountEncounter(host: HTMLElement, props: EncounterProps): () => 
           <span class="corner corner-tr"></span>
           <span class="corner corner-bl"></span>
           <span class="corner corner-br"></span>
-          <div class="preview-avatar">🛡️</div>
+          <div class="preview-avatar">${playerSprite}</div>
           <div class="preview-name with-drop-cap" data-i18n="you"></div>
           <dl class="stat-list">
             <div class="stat-row"><dt data-i18n="stat_hp"></dt><dd>${player.hp} / ${player.maxHP}</dd></div>

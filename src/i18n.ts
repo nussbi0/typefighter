@@ -42,6 +42,7 @@ const messages: Record<Locale, Messages> = {
     upgrade_renewal_desc: 'Recover 2 HP per word typed.',
 
     levelup_reroll: 'Reroll ({n})',
+    boon_favored: 'Favored',
     stat_def: 'Def',
     stat_crit: 'Crit',
     stat_lifesteal: 'Lifesteal',
@@ -81,6 +82,15 @@ const messages: Record<Locale, Messages> = {
     stats_button: 'Annals',
     stats_title: 'Annals',
     stats_close: 'Close',
+
+    classselect_title: 'Choose your hero',
+    classselect_subtitle: 'Each path favors a different way to fight.',
+    class_knight: 'Knight',
+    class_knight_desc: 'Hardened veteran — more health and innate armor.',
+    class_mage: 'Mage',
+    class_mage_desc: 'Frail but devastating — combos strike far harder.',
+    class_rogue: 'Rogue',
+    class_rogue_desc: "A duelist's eye — innate critical chance.",
 
     branch_title: 'A crossroads',
     branch_subtitle: 'Two foes lie ahead — choose your trial.',
@@ -128,6 +138,7 @@ const messages: Record<Locale, Messages> = {
     upgrade_renewal_desc: 'Heile 2 LP pro getipptem Wort.',
 
     levelup_reroll: 'Neu mischen ({n})',
+    boon_favored: 'Bevorzugt',
     stat_def: 'Vert',
     stat_crit: 'Krit',
     stat_lifesteal: 'Lebensraub',
@@ -167,6 +178,15 @@ const messages: Record<Locale, Messages> = {
     stats_button: 'Chronik',
     stats_title: 'Chronik',
     stats_close: 'Schließen',
+
+    classselect_title: 'Wähle deinen Helden',
+    classselect_subtitle: 'Jeder Pfad begünstigt einen anderen Kampfstil.',
+    class_knight: 'Ritter',
+    class_knight_desc: 'Abgehärteter Veteran — mehr Leben und Rüstung.',
+    class_mage: 'Magier',
+    class_mage_desc: 'Zerbrechlich, doch verheerend — Kombos treffen härter.',
+    class_rogue: 'Schurke',
+    class_rogue_desc: 'Das Auge des Duellanten — angeborene Kritchance.',
 
     branch_title: 'Eine Wegkreuzung',
     branch_subtitle: 'Zwei Feinde stehen bereit — wähle deine Prüfung.',

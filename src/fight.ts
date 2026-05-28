@@ -23,6 +23,7 @@ const PLAYER_DMG_COMBO_MULT: Record<number, number> = { 1: 1.0, 2: 1.4, 3: 1.7 }
 export interface FightProps {
   enemy: Enemy;
   player: PlayerStats;
+  playerSprite: string;
   onWin: (remainingHP: number, outcome: FightOutcome) => void;
   onLose: (outcome: FightOutcome) => void;
 }
@@ -41,7 +42,7 @@ interface State {
 }
 
 export function mountFight(host: HTMLElement, props: FightProps): () => void {
-  const { enemy, player, onWin, onLose } = props;
+  const { enemy, player, playerSprite, onWin, onLose } = props;
 
   host.innerHTML = `
     <div class="fight">
@@ -69,7 +70,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
             <div class="hp-bar"><div class="hp-fill player-hp"></div></div>
             <div class="hp-text player-hp-text"></div>
           </div>
-          <div class="avatar player-avatar">🛡️</div>
+          <div class="avatar player-avatar">${playerSprite}</div>
         </div>
       </div>
 

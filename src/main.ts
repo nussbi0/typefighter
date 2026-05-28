@@ -12,6 +12,8 @@ import { mountEncounter } from './encounter';
 import { mountLevelUp } from './levelup';
 import { mountRunOver } from './runover';
 import { mountBranch } from './branch';
+import { mountClassSelect } from './classselect';
+import type { HeroClass } from './classes';
 import {
   advance,
   applyModifier,
@@ -117,9 +119,13 @@ function show(mount: (host: HTMLElement) => () => void) {
 }
 
 function startRun() {
+  show((host) => mountClassSelect(host, { onPick: beginRun }));
+}
+
+function beginRun(heroClass: HeroClass) {
   runBestWPM = 0;
   recordRunStart();
-  const run = newRun();
+  const run = newRun(heroClass);
   showEncounter(run);
 }
 
@@ -129,6 +135,7 @@ function showEncounter(run: RunState) {
     mountEncounter(host, {
       enemy: run.upcomingEnemy,
       player: run.player,
+      playerSprite: run.heroClass.sprite,
       encounterNumber: run.fightNumber,
       appliedHeal: applied.healed,
       appliedMaxHP: applied.maxBoosted,
@@ -142,6 +149,7 @@ function showFight(run: RunState) {
     mountFight(host, {
       enemy: run.upcomingEnemy,
       player: run.player,
+      playerSprite: run.heroClass.sprite,
       onWin: (remainingHP, outcome) => {
         runBestWPM = Math.max(runBestWPM, outcome.wpm);
         recordFightOutcome(outcome, getLocale());
@@ -170,6 +178,7 @@ function showLevelUp(run: RunState) {
   show((host) =>
     mountLevelUp(host, {
       player: run.player,
+      favoredBoons: run.heroClass.favoredBoons,
       onChosen: () => afterLevelUp(run),
     })
   );
