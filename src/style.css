@@ -86,6 +86,19 @@ html, body {
   background: linear-gradient(180deg, rgba(20, 12, 4, 0.12), transparent);
 }
 
+.brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-icon {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 2px 6px rgba(20, 12, 4, 0.5));
+}
+
 .brand {
   margin: 0;
   display: inline-flex;
@@ -1539,6 +1552,7 @@ html, body {
   .word { font-size: 26px; }
   .banner { font-size: 40px; }
   .brand { font-size: 22px; }
+  .brand-icon { width: 30px; height: 30px; }
   .preview-grid { grid-template-columns: 1fr; gap: 14px; }
   .vs-large { justify-self: center; font-size: 36px; }
   .boon-grid { grid-template-columns: 1fr; }
