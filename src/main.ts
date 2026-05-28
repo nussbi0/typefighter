@@ -13,6 +13,7 @@ import { mountLevelUp } from './levelup';
 import { mountRunOver } from './runover';
 import { mountBranch } from './branch';
 import { mountClassSelect } from './classselect';
+import { mountModeSelect } from './modeselect';
 import type { HeroClass } from './classes';
 import {
   advance,
@@ -20,17 +21,20 @@ import {
   applyPending,
   isRunComplete,
   newRun,
+  type RunMode,
   type RunState,
 } from './state';
 import {
+  bestEndless,
   bestRun,
   bestWPM,
+  recordEndlessEnd,
   recordFightOutcome,
   recordRunEnd,
   recordRunStart,
   totals,
 } from './stats';
-import { findEnemy, RUN_LENGTH } from './enemies';
+import { endlessCandidates, enemiesByTier, findEnemy, RUN_LENGTH, type Enemy } from './enemies';
 
 function applyStaticI18n() {
   document.querySelectorAll<HTMLElement>('[data-i18n]').forEach((el) => {
@@ -169,13 +173,17 @@ function show(mount: (host: HTMLElement) => () => void) {
 }
 
 function startRun() {
-  show((host) => mountClassSelect(host, { onPick: beginRun }));
+  show((host) => mountModeSelect(host, { onPick: chooseClass }));
 }
 
-function beginRun(heroClass: HeroClass) {
+function chooseClass(mode: RunMode) {
+  show((host) => mountClassSelect(host, { onPick: (hero) => beginRun(hero, mode) }));
+}
+
+function beginRun(heroClass: HeroClass, mode: RunMode) {
   runBestWPM = 0;
   recordRunStart();
-  const run = newRun(heroClass);
+  const run = newRun(heroClass, mode);
   showEncounter(run);
 }
 
@@ -187,6 +195,7 @@ function showEncounter(run: RunState) {
       player: run.player,
       playerSprite: run.heroClass.sprite,
       encounterNumber: run.fightNumber,
+      endless: run.mode === 'endless',
       appliedHeal: applied.healed,
       appliedMaxHP: applied.maxBoosted,
       onStart: () => showFight(run),
@@ -236,17 +245,22 @@ function showLevelUp(run: RunState) {
 
 function afterLevelUp(run: RunState) {
   const nextFightNumber = run.fightNumber + 1;
-  if (nextFightNumber === RUN_LENGTH) {
+  if (run.mode === 'classic' && nextFightNumber === RUN_LENGTH) {
     // Final fight: dragon, fixed
     run.fightNumber = nextFightNumber;
     run.upcomingEnemy = findEnemy('dragon');
     showEncounter(run);
     return;
   }
-  // Branch for next fight
+  const candidates =
+    run.mode === 'endless' ? endlessCandidates(nextFightNumber) : enemiesByTier(nextFightNumber);
+  showBranch(run, nextFightNumber, candidates);
+}
+
+function showBranch(run: RunState, nextFightNumber: number, candidates: Enemy[]) {
   show((host) =>
     mountBranch(host, {
-      tier: nextFightNumber,
+      enemies: candidates,
       player: run.player,
       onPicked: (enemy, modifier) => {
         run.fightNumber = nextFightNumber;
@@ -262,9 +276,15 @@ function showRunOver(run: RunState, result: 'won' | 'lost') {
   const locale = getLocale();
   const prevBestRun = bestRun(locale);
   const prevBestWPM = bestWPM(locale);
-  recordRunEnd(run.defeated, result === 'won', locale);
-  const newRunRecord = run.defeated > prevBestRun;
+  const prevBestEndless = bestEndless(locale);
+  if (run.mode === 'endless') {
+    recordEndlessEnd(run.defeated, locale);
+  } else {
+    recordRunEnd(run.defeated, result === 'won', locale);
+  }
+  const newRunRecord = run.mode === 'classic' && run.defeated > prevBestRun;
   const newWPMRecord = runBestWPM > prevBestWPM;
+  const newEndlessRecord = run.mode === 'endless' && run.defeated > prevBestEndless;
   show((host) =>
     mountRunOver(host, {
       run,
@@ -272,6 +292,7 @@ function showRunOver(run: RunState, result: 'won' | 'lost') {
       runBestWPM,
       newRunRecord,
       newWPMRecord,
+      newEndlessRecord,
       onRestart: startRun,
     })
   );

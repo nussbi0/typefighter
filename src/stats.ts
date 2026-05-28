@@ -11,6 +11,7 @@ export interface FightOutcome {
 export interface PersistedStats {
   bestRunByLocale: Record<string, number>;
   bestWPMByLocale: Record<string, number>;
+  bestEndlessByLocale: Record<string, number>;
   totalRuns: number;
   totalClears: number;
 }
@@ -18,6 +19,7 @@ export interface PersistedStats {
 const emptyStats = (): PersistedStats => ({
   bestRunByLocale: {},
   bestWPMByLocale: {},
+  bestEndlessByLocale: {},
   totalRuns: 0,
   totalClears: 0,
 });
@@ -75,8 +77,19 @@ export function recordFightOutcome(outcome: FightOutcome, locale: Locale): void 
   write(s);
 }
 
+export function recordEndlessEnd(depth: number, locale: Locale): void {
+  const s = read();
+  const prev = s.bestEndlessByLocale[locale] ?? 0;
+  if (depth > prev) s.bestEndlessByLocale[locale] = depth;
+  write(s);
+}
+
 export function bestRun(locale: Locale): number {
   return read().bestRunByLocale[locale] ?? 0;
+}
+
+export function bestEndless(locale: Locale): number {
+  return read().bestEndlessByLocale[locale] ?? 0;
 }
 
 export function bestWPM(locale: Locale): number {

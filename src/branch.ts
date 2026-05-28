@@ -1,9 +1,9 @@
 import { onLocaleChange, renderTextWithDropCap, t } from './i18n';
-import { enemiesByTier, type Enemy } from './enemies';
+import { type Enemy } from './enemies';
 import type { Modifier, PlayerStats } from './state';
 
 export interface BranchProps {
-  tier: number;
+  enemies: Enemy[];
   player: PlayerStats;
   onPicked: (enemy: Enemy, modifier: Modifier) => void;
 }
@@ -33,10 +33,9 @@ function speedStars(msPerChar: number): string {
   return '★★★★';
 }
 
-function buildOptions(tier: number): BranchOption[] {
-  const pool = enemiesByTier(tier);
+function buildOptions(pool: Enemy[]): BranchOption[] {
   if (pool.length < 2) {
-    // Fallback: duplicate (shouldn't happen for designed tiers)
+    // Fallback: duplicate (shouldn't happen for designed pools)
     const e = pool[0];
     return [
       { enemy: e, modifier: 'refuge' },
@@ -49,8 +48,8 @@ function buildOptions(tier: number): BranchOption[] {
 }
 
 export function mountBranch(host: HTMLElement, props: BranchProps): () => void {
-  const { tier, onPicked } = props;
-  const options = buildOptions(tier);
+  const { enemies, onPicked } = props;
+  const options = buildOptions(enemies);
 
   host.innerHTML = `
     <div class="scene branch">

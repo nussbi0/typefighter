@@ -34,6 +34,18 @@ export const roster: Enemy[] = [
     comboMaxWords: 2,
     tier: 1,
   },
+  {
+    id: 'bat',
+    nameKey: 'enemy_bat',
+    sprite: '🦇',
+    maxHP: 60,
+    hitDamage: 10,
+    msPerChar: 300,
+    spawnDelayMs: 460,
+    comboChance: 0.2,
+    comboMaxWords: 2,
+    tier: 1,
+  },
   // Tier 2
   {
     id: 'wolf',
@@ -56,6 +68,18 @@ export const roster: Enemy[] = [
     msPerChar: 340,
     spawnDelayMs: 480,
     comboChance: 0.22,
+    comboMaxWords: 2,
+    tier: 2,
+  },
+  {
+    id: 'spider',
+    nameKey: 'enemy_spider',
+    sprite: '🕷️',
+    maxHP: 105,
+    hitDamage: 15,
+    msPerChar: 320,
+    spawnDelayMs: 440,
+    comboChance: 0.28,
     comboMaxWords: 2,
     tier: 2,
   },
@@ -84,6 +108,18 @@ export const roster: Enemy[] = [
     comboMaxWords: 2,
     tier: 3,
   },
+  {
+    id: 'boar',
+    nameKey: 'enemy_boar',
+    sprite: '🐗',
+    maxHP: 175,
+    hitDamage: 24,
+    msPerChar: 460,
+    spawnDelayMs: 560,
+    comboChance: 0.12,
+    comboMaxWords: 2,
+    tier: 3,
+  },
   // Tier 4
   {
     id: 'sorcerer',
@@ -109,7 +145,31 @@ export const roster: Enemy[] = [
     comboMaxWords: 3,
     tier: 4,
   },
-  // Boss
+  {
+    id: 'golem',
+    nameKey: 'enemy_golem',
+    sprite: '🗿',
+    maxHP: 215,
+    hitDamage: 26,
+    msPerChar: 420,
+    spawnDelayMs: 540,
+    comboChance: 0.2,
+    comboMaxWords: 2,
+    tier: 4,
+  },
+  {
+    id: 'vampire',
+    nameKey: 'enemy_vampire',
+    sprite: '🧛',
+    maxHP: 145,
+    hitDamage: 22,
+    msPerChar: 300,
+    spawnDelayMs: 420,
+    comboChance: 0.45,
+    comboMaxWords: 3,
+    tier: 4,
+  },
+  // Bosses
   {
     id: 'dragon',
     nameKey: 'enemy_dragon',
@@ -129,6 +189,44 @@ export const roster: Enemy[] = [
     },
     isBoss: true,
   },
+  {
+    id: 'demon',
+    nameKey: 'enemy_demon',
+    sprite: '😈',
+    maxHP: 230,
+    hitDamage: 27,
+    msPerChar: 280,
+    spawnDelayMs: 400,
+    comboChance: 0.5,
+    comboMaxWords: 3,
+    tier: 5,
+    phaseChange: {
+      triggerHPRatio: 0.5,
+      msPerChar: 230,
+      spawnDelayMs: 320,
+      comboChance: 0.7,
+    },
+    isBoss: true,
+  },
+  {
+    id: 'kraken',
+    nameKey: 'enemy_kraken',
+    sprite: '🦑',
+    maxHP: 285,
+    hitDamage: 26,
+    msPerChar: 320,
+    spawnDelayMs: 440,
+    comboChance: 0.4,
+    comboMaxWords: 3,
+    tier: 5,
+    phaseChange: {
+      triggerHPRatio: 0.5,
+      msPerChar: 260,
+      spawnDelayMs: 360,
+      comboChance: 0.6,
+    },
+    isBoss: true,
+  },
 ];
 
 export const RUN_LENGTH = 5;
@@ -141,4 +239,60 @@ export function findEnemy(id: string): Enemy {
 
 export function enemiesByTier(tier: number): Enemy[] {
   return roster.filter((e) => e.tier === tier);
+}
+
+// --- Endless mode -----------------------------------------------------------
+
+export const ENDLESS_BOSS_EVERY = 5;
+
+function shuffle<T>(arr: T[]): T[] {
+  const out = [...arr];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
+function scalePhase(phase: PhaseChange, speedScale: number, comboAdd: number): PhaseChange {
+  return {
+    triggerHPRatio: phase.triggerHPRatio,
+    msPerChar: Math.round(phase.msPerChar * speedScale),
+    spawnDelayMs: Math.round(phase.spawnDelayMs * speedScale),
+    comboChance: Math.min(0.9, phase.comboChance + comboAdd),
+  };
+}
+
+// Produce a depth-scaled copy of a base enemy: tougher, faster, and more
+// combo-prone the deeper the endless run goes.
+function scaleEnemy(base: Enemy, depth: number): Enemy {
+  const steps = depth - 1;
+  const hpScale = 1 + 0.2 * steps;
+  const dmgScale = 1 + 0.1 * steps;
+  const speedScale = Math.max(0.5, 1 - 0.02 * steps);
+  const comboAdd = Math.min(0.4, 0.015 * steps);
+  return {
+    ...base,
+    id: `${base.id}@${depth}`,
+    maxHP: Math.round(base.maxHP * hpScale),
+    hitDamage: Math.round(base.hitDamage * dmgScale),
+    msPerChar: Math.round(base.msPerChar * speedScale),
+    spawnDelayMs: Math.round(base.spawnDelayMs * speedScale),
+    comboChance: Math.min(0.9, base.comboChance + comboAdd),
+    phaseChange: base.phaseChange ? scalePhase(base.phaseChange, speedScale, comboAdd) : undefined,
+  };
+}
+
+export function isEndlessBossDepth(depth: number): boolean {
+  return depth % ENDLESS_BOSS_EVERY === 0;
+}
+
+// Two scaled enemy choices for a given endless depth. Every fifth depth is a
+// boss gauntlet; otherwise the pool of base foes widens as depth increases.
+export function endlessCandidates(depth: number): Enemy[] {
+  const pool = isEndlessBossDepth(depth)
+    ? roster.filter((e) => e.isBoss)
+    : roster.filter((e) => !e.isBoss && e.tier <= Math.min(4, 1 + Math.floor((depth - 1) / 2)));
+  const picks = shuffle(pool).slice(0, Math.min(2, pool.length));
+  return picks.map((b) => scaleEnemy(b, depth));
 }

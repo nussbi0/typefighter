@@ -1,5 +1,7 @@
-import { findEnemy, RUN_LENGTH, type Enemy } from './enemies';
+import { endlessCandidates, findEnemy, RUN_LENGTH, type Enemy } from './enemies';
 import type { HeroClass } from './classes';
+
+export type RunMode = 'classic' | 'endless';
 
 export interface PlayerStats {
   maxHP: number;
@@ -19,6 +21,7 @@ export type Modifier = 'refuge' | 'empower';
 export interface RunState {
   player: PlayerStats;
   heroClass: HeroClass;
+  mode: RunMode;
   fightNumber: number;
   defeated: number;
   upcomingEnemy: Enemy;
@@ -49,13 +52,14 @@ export function classPreview(heroClass: HeroClass): PlayerStats {
   return p;
 }
 
-export function newRun(heroClass: HeroClass): RunState {
+export function newRun(heroClass: HeroClass, mode: RunMode): RunState {
   return {
     player: classPreview(heroClass),
     heroClass,
+    mode,
     fightNumber: 1,
     defeated: 0,
-    upcomingEnemy: findEnemy('goblin'),
+    upcomingEnemy: mode === 'endless' ? endlessCandidates(1)[0] : findEnemy('goblin'),
     pendingHeal: 0,
     pendingMaxHPBoost: 0,
   };
@@ -78,7 +82,7 @@ export function combatStatLines(p: PlayerStats): CombatStatLine[] {
 }
 
 export function isRunComplete(run: RunState): boolean {
-  return run.defeated >= RUN_LENGTH;
+  return run.mode === 'classic' && run.defeated >= RUN_LENGTH;
 }
 
 export function advance(run: RunState): void {

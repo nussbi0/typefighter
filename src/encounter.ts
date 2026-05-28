@@ -7,13 +7,14 @@ export interface EncounterProps {
   player: PlayerStats;
   playerSprite: string;
   encounterNumber: number;
+  endless?: boolean;
   appliedHeal?: number;
   appliedMaxHP?: number;
   onStart: () => void;
 }
 
 export function mountEncounter(host: HTMLElement, props: EncounterProps): () => void {
-  const { enemy, player, playerSprite, encounterNumber, appliedHeal = 0, appliedMaxHP = 0, onStart } = props;
+  const { enemy, player, playerSprite, encounterNumber, endless = false, appliedHeal = 0, appliedMaxHP = 0, onStart } = props;
 
   host.innerHTML = `
     <div class="scene encounter">
@@ -77,7 +78,9 @@ export function mountEncounter(host: HTMLElement, props: EncounterProps): () => 
         el.textContent = text;
       }
     });
-    counterEl.textContent = t('encounter_title', { n: encounterNumber, total: RUN_LENGTH });
+    counterEl.textContent = endless
+      ? t('encounter_depth', { n: encounterNumber })
+      : t('encounter_title', { n: encounterNumber, total: RUN_LENGTH });
     const flavorText = enemy.isBoss ? t('encounter_boss') : t('encounter_appears', { enemy: t(enemy.nameKey) });
     renderTextWithDropCap(flavorEl, flavorText);
 

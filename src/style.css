@@ -1398,6 +1398,15 @@ html, body {
   margin-top: 8px;
 }
 
+.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 28px;
+  width: 100%;
+  max-width: 720px;
+  margin: 8px auto 0;
+}
+
 .branch-card,
 .class-card {
   position: relative;
@@ -1539,6 +1548,7 @@ html, body {
   .branch-title { font-size: 28px; }
   .branch-avatar { font-size: 56px; width: 84px; height: 84px; }
   .class-grid { grid-template-columns: 1fr; gap: 16px; }
+  .mode-grid { grid-template-columns: 1fr; gap: 16px; }
   .classselect-title { font-size: 28px; }
   .class-avatar { font-size: 56px; width: 84px; height: 84px; }
 }

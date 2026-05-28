@@ -14,13 +14,20 @@ const messages: Record<Locale, Messages> = {
     hint: 'Type the incoming word before it reaches you. Faster = more damage.',
 
     enemy_goblin: 'Goblin',
+    enemy_bat: 'Cave Bat',
     enemy_wolf: 'Wolf',
     enemy_skeleton: 'Skeleton',
+    enemy_spider: 'Giant Spider',
     enemy_orc: 'Orc',
     enemy_troll: 'Troll',
+    enemy_boar: 'Dire Boar',
     enemy_sorcerer: 'Sorcerer',
     enemy_ghost: 'Wraith',
+    enemy_golem: 'Stone Golem',
+    enemy_vampire: 'Vampire',
     enemy_dragon: 'Dragon',
+    enemy_demon: 'Demon Lord',
+    enemy_kraken: 'Kraken',
 
     upgrade_might: 'Might',
     upgrade_might_desc: 'Your strikes land 20% harder.',
@@ -51,9 +58,17 @@ const messages: Record<Locale, Messages> = {
     stat_regen: 'Regen',
 
     encounter_title: 'Encounter {n} of {total}',
+    encounter_depth: 'Depth {n}',
     encounter_boss: 'A grim foe blocks your path.',
     encounter_appears: 'A wild {enemy} approaches.',
     encounter_begin: 'Begin combat',
+
+    mode_title: 'Choose your trial',
+    mode_subtitle: 'How far will your typing carry you?',
+    mode_classic: 'Classic',
+    mode_classic_desc: 'A focused gauntlet of {total} foes, ending with a boss.',
+    mode_endless: 'Endless',
+    mode_endless_desc: 'Fight ever-tougher foes until you fall. How deep can you go?',
 
     stat_hp: 'HP',
     stat_atk: 'ATK',
@@ -65,7 +80,9 @@ const messages: Record<Locale, Messages> = {
 
     runover_won: 'Victorious',
     runover_lost: 'You have fallen',
+    runover_endless_over: 'Overwhelmed',
     runover_count: '{n} of {total} foes vanquished',
+    runover_depth: 'Reached depth {n}',
     runover_restart: 'Begin a new run',
 
     tier_perfect: 'Perfect!',
@@ -75,6 +92,7 @@ const messages: Record<Locale, Messages> = {
     stat_best_fight: 'Best fight',
     stat_record_wpm: 'Record WPM',
     stat_longest_run: 'Longest run',
+    stat_best_depth: 'Deepest run',
     stat_runs_total: 'Runs (cleared)',
     stat_new_record: 'New!',
     stat_wpm_unit: '{wpm} WPM',
@@ -91,6 +109,7 @@ const messages: Record<Locale, Messages> = {
     howto_p3: 'Multi-word combos hit hard, but hurt more if they reach you.',
     howto_p4: 'Win a fight to claim a boon — pick with 1/2/3, reroll once with R.',
     howto_p5: 'Switch EN/DE and review your records (Annals) up top.',
+    howto_p6: 'Pick Classic (a set gauntlet) or Endless (survive as deep as you can).',
     howto_begin: 'Enter the fray',
 
     classselect_title: 'Choose your hero',
@@ -120,13 +139,20 @@ const messages: Record<Locale, Messages> = {
     hint: 'Tippe das ankommende Wort, bevor es dich erreicht. Schneller = mehr Schaden.',
 
     enemy_goblin: 'Goblin',
+    enemy_bat: 'Höhlenfledermaus',
     enemy_wolf: 'Wolf',
     enemy_skeleton: 'Skelett',
+    enemy_spider: 'Riesenspinne',
     enemy_orc: 'Ork',
     enemy_troll: 'Troll',
+    enemy_boar: 'Wildeber',
     enemy_sorcerer: 'Zauberer',
     enemy_ghost: 'Geist',
+    enemy_golem: 'Steingolem',
+    enemy_vampire: 'Vampir',
     enemy_dragon: 'Drache',
+    enemy_demon: 'Dämonenfürst',
+    enemy_kraken: 'Krake',
 
     upgrade_might: 'Stärke',
     upgrade_might_desc: 'Deine Hiebe treffen 20% härter.',
@@ -157,9 +183,17 @@ const messages: Record<Locale, Messages> = {
     stat_regen: 'Regen',
 
     encounter_title: 'Begegnung {n} von {total}',
+    encounter_depth: 'Tiefe {n}',
     encounter_boss: 'Ein finsterer Feind versperrt deinen Weg.',
     encounter_appears: 'Ein wilder {enemy} naht.',
     encounter_begin: 'Kampf beginnen',
+
+    mode_title: 'Wähle deine Prüfung',
+    mode_subtitle: 'Wie weit trägt dich dein Tippen?',
+    mode_classic: 'Klassisch',
+    mode_classic_desc: 'Ein straffer Parcours aus {total} Gegnern mit Boss zum Schluss.',
+    mode_endless: 'Endlos',
+    mode_endless_desc: 'Kämpfe gegen immer stärkere Gegner, bis du fällst. Wie tief kommst du?',
 
     stat_hp: 'LP',
     stat_atk: 'ANG',
@@ -171,7 +205,9 @@ const messages: Record<Locale, Messages> = {
 
     runover_won: 'Siegreich',
     runover_lost: 'Du bist gefallen',
+    runover_endless_over: 'Überwältigt',
     runover_count: '{n} von {total} Gegnern besiegt',
+    runover_depth: 'Tiefe {n} erreicht',
     runover_restart: 'Neuen Lauf beginnen',
 
     tier_perfect: 'Perfekt!',
@@ -181,6 +217,7 @@ const messages: Record<Locale, Messages> = {
     stat_best_fight: 'Bester Kampf',
     stat_record_wpm: 'Rekord WPM',
     stat_longest_run: 'Längster Lauf',
+    stat_best_depth: 'Tiefster Lauf',
     stat_runs_total: 'Läufe (bezwungen)',
     stat_new_record: 'Neu!',
     stat_wpm_unit: '{wpm} WPM',
@@ -197,6 +234,7 @@ const messages: Record<Locale, Messages> = {
     howto_p3: 'Mehrwort-Kombos treffen hart, schmerzen aber mehr, wenn sie dich erreichen.',
     howto_p4: 'Gewinne einen Kampf für eine Gabe — wähle mit 1/2/3, einmal neu mischen mit R.',
     howto_p5: 'Wechsle EN/DE und sieh deine Rekorde (Chronik) oben ein.',
+    howto_p6: 'Wähle Klassisch (fester Parcours) oder Endlos (so tief wie möglich überleben).',
     howto_begin: 'In den Kampf',
 
     classselect_title: 'Wähle deinen Helden',
