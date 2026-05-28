@@ -257,6 +257,56 @@ html, body {
   color: var(--ink);
 }
 
+.howto-card {
+  max-width: 560px;
+  gap: 18px;
+}
+
+.howto-tagline {
+  margin: -8px 0 0;
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 18px;
+  color: var(--ink-light);
+  text-align: center;
+}
+
+.howto-premise {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 17px;
+  color: var(--ink);
+  text-align: center;
+  line-height: 1.55;
+}
+
+.howto-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  width: 100%;
+}
+
+.howto-list li {
+  position: relative;
+  padding-left: 28px;
+  font-family: var(--font-body);
+  font-size: 16px;
+  color: var(--ink);
+  line-height: 1.45;
+}
+
+.howto-list li::before {
+  content: '✦';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  color: var(--gold-dim);
+}
+
 .lang-switcher {
   display: flex;
   gap: 0;

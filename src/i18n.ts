@@ -83,6 +83,16 @@ const messages: Record<Locale, Messages> = {
     stats_title: 'Annals',
     stats_close: 'Close',
 
+    howto_button: 'Guide',
+    howto_tagline: 'A typing-fueled RPG duel.',
+    howto_premise: 'Battle five foes as a hero of your choosing. Type each incoming word before it reaches you — the sooner you finish, the harder you strike.',
+    howto_p1: 'Type the word racing toward you before it lands a hit.',
+    howto_p2: 'Finish early for Perfect or Great strikes — more damage.',
+    howto_p3: 'Multi-word combos hit hard, but hurt more if they reach you.',
+    howto_p4: 'Win a fight to claim a boon — pick with 1/2/3, reroll once with R.',
+    howto_p5: 'Switch EN/DE and review your records (Annals) up top.',
+    howto_begin: 'Enter the fray',
+
     classselect_title: 'Choose your hero',
     classselect_subtitle: 'Each path favors a different way to fight.',
     class_knight: 'Knight',
@@ -178,6 +188,16 @@ const messages: Record<Locale, Messages> = {
     stats_button: 'Chronik',
     stats_title: 'Chronik',
     stats_close: 'Schließen',
+
+    howto_button: 'Anleitung',
+    howto_tagline: 'Ein tippgetriebenes RPG-Duell.',
+    howto_premise: 'Bekämpfe fünf Gegner als Held deiner Wahl. Tippe jedes ankommende Wort, bevor es dich erreicht — je früher du fertig bist, desto härter triffst du.',
+    howto_p1: 'Tippe das heranrasende Wort, bevor es einschlägt.',
+    howto_p2: 'Früh fertig werden für Perfekt- oder Stark-Treffer — mehr Schaden.',
+    howto_p3: 'Mehrwort-Kombos treffen hart, schmerzen aber mehr, wenn sie dich erreichen.',
+    howto_p4: 'Gewinne einen Kampf für eine Gabe — wähle mit 1/2/3, einmal neu mischen mit R.',
+    howto_p5: 'Wechsle EN/DE und sieh deine Rekorde (Chronik) oben ein.',
+    howto_begin: 'In den Kampf',
 
     classselect_title: 'Wähle deinen Helden',
     classselect_subtitle: 'Jeder Pfad begünstigt einen anderen Kampfstil.',

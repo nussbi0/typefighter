@@ -103,6 +103,35 @@ function bindStatsModal() {
   });
 }
 
+const INTRO_KEY = 'typefighter.seenIntro.v1';
+
+function hasSeenIntro(): boolean {
+  try {
+    return localStorage.getItem(INTRO_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function markIntroSeen(): void {
+  try {
+    localStorage.setItem(INTRO_KEY, '1');
+  } catch {
+    // ignore
+  }
+}
+
+function bindHowToModal() {
+  const btn = document.getElementById('howto-button')!;
+  const dlg = document.getElementById('howto-modal') as HTMLDialogElement;
+  const card = dlg.querySelector('.modal-card') as HTMLElement;
+  const closeBtn = dlg.querySelector('.howto-close') as HTMLButtonElement;
+  btn.addEventListener('click', () => dlg.showModal());
+  closeBtn.addEventListener('click', () => dlg.close());
+  card.addEventListener('click', (e) => e.stopPropagation());
+  dlg.addEventListener('click', () => dlg.close());
+}
+
 function spawnEmbers(count: number) {
   const layer = document.createElement('div');
   layer.className = 'embers';
@@ -126,6 +155,7 @@ onLocaleChange(applyStaticI18n);
 applyStaticI18n();
 bindLangSwitcher();
 bindStatsModal();
+bindHowToModal();
 spawnEmbers(20);
 
 const scene = document.getElementById('scene')!;
@@ -248,3 +278,8 @@ function showRunOver(run: RunState, result: 'won' | 'lost') {
 }
 
 startRun();
+
+if (!hasSeenIntro()) {
+  (document.getElementById('howto-modal') as HTMLDialogElement).showModal();
+  markIntroSeen();
+}
