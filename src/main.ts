@@ -76,6 +76,11 @@ function renderStatsModal() {
       <div class="annals-row"><span class="annals-key">DE</span><span class="annals-val">${bestRun('de')} / ${RUN_LENGTH}</span></div>
     </div>
     <div class="annals-section">
+      <h3 class="annals-section-title" data-i18n="stat_best_depth"></h3>
+      <div class="annals-row"><span class="annals-key">EN</span><span class="annals-val">${bestEndless('en')}</span></div>
+      <div class="annals-row"><span class="annals-key">DE</span><span class="annals-val">${bestEndless('de')}</span></div>
+    </div>
+    <div class="annals-section">
       <h3 class="annals-section-title" data-i18n="stat_record_wpm"></h3>
       <div class="annals-row"><span class="annals-key">EN</span><span class="annals-val">${t('stat_wpm_unit', { wpm: bestWPM('en') })}</span></div>
       <div class="annals-row"><span class="annals-key">DE</span><span class="annals-val">${t('stat_wpm_unit', { wpm: bestWPM('de') })}</span></div>
