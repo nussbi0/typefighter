@@ -268,10 +268,17 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     let dmg = Math.round(BASE_DAMAGE * TIER_MULT[tier] * comboMult * player.atkMult);
     const crit = Math.random() < player.critChance;
     if (crit) dmg *= 2;
+    const wasCombo = state.wordCount > 1;
     state.enemyHP = Math.max(0, state.enemyHP - dmg);
     showHit('enemy', dmg, tier, crit);
     hitFlash(els.enemyAvatar);
     applyHeal(Math.round(dmg * player.lifesteal) + player.regen);
+    if (crit) {
+      spawnBurst(els.enemyAvatar, 'spark', 9);
+      shake();
+    } else if (wasCombo) {
+      spawnBurst(els.enemyAvatar, 'spark', 5);
+    }
     state.word = null;
     state.typed = '';
     state.wordCount = 1;
@@ -280,6 +287,10 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     renderHP();
     checkPhaseChange();
     if (state.enemyHP === 0) {
+      spawnBurst(els.enemyAvatar, 'spark', 16);
+      els.enemyAvatar.classList.remove('enraged', 'cast');
+      els.enemyAvatar.classList.add('defeated');
+      shake();
       endFight('won');
     } else {
       scheduleSpawn();
@@ -322,6 +333,8 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     state.playerHP = Math.max(0, state.playerHP - dmg);
     showHit('player', dmg);
     hitFlash(els.playerAvatar);
+    spawnBurst(els.playerAvatar, 'ember', 7);
+    shake();
     state.word = null;
     state.typed = '';
     state.wordCount = 1;
@@ -369,6 +382,27 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     el.classList.remove('hit');
     void el.offsetWidth;
     el.classList.add('hit');
+  }
+
+  function shake() {
+    host.classList.remove('shaking');
+    void host.offsetWidth;
+    host.classList.add('shaking');
+    window.setTimeout(() => host.classList.remove('shaking'), 260);
+  }
+
+  function spawnBurst(el: HTMLElement, kind: 'spark' | 'ember', count: number) {
+    for (let i = 0; i < count; i++) {
+      const p = document.createElement('span');
+      p.className = `particle particle-${kind}`;
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 26 + Math.random() * 38;
+      p.style.setProperty('--dx', `${Math.cos(angle) * dist}px`);
+      p.style.setProperty('--dy', `${Math.sin(angle) * dist}px`);
+      p.style.setProperty('--delay', `${Math.floor(Math.random() * 70)}ms`);
+      el.appendChild(p);
+      window.setTimeout(() => p.remove(), 760);
+    }
   }
 
   function flashTypo() {

@@ -103,10 +103,30 @@ function bindStatsModal() {
   });
 }
 
+function spawnEmbers(count: number) {
+  const layer = document.createElement('div');
+  layer.className = 'embers';
+  layer.setAttribute('aria-hidden', 'true');
+  for (let i = 0; i < count; i++) {
+    const e = document.createElement('span');
+    e.className = 'ember';
+    const size = 2 + Math.random() * 4;
+    e.style.left = `${Math.random() * 100}%`;
+    e.style.width = `${size}px`;
+    e.style.height = `${size}px`;
+    e.style.setProperty('--sway', `${(Math.random() - 0.5) * 120}px`);
+    e.style.setProperty('--dur', `${14 + Math.random() * 14}s`);
+    e.style.animationDelay = `${-Math.random() * 24}s`;
+    layer.appendChild(e);
+  }
+  document.body.prepend(layer);
+}
+
 onLocaleChange(applyStaticI18n);
 applyStaticI18n();
 bindLangSwitcher();
 bindStatsModal();
+spawnEmbers(20);
 
 const scene = document.getElementById('scene')!;
 let cleanupScene: (() => void) | null = null;

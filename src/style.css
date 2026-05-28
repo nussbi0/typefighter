@@ -41,6 +41,40 @@ html, body {
   height: 100%;
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 1;
+}
+
+.embers {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.ember {
+  position: absolute;
+  bottom: -12px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(243, 197, 74, 0.7), rgba(243, 197, 74, 0));
+  opacity: 0;
+  animation: ember-rise var(--dur, 20s) linear infinite;
+}
+
+@keyframes ember-rise {
+  0% { transform: translate(0, 0); opacity: 0; }
+  12% { opacity: 0.55; }
+  88% { opacity: 0.45; }
+  100% { transform: translate(var(--sway, 30px), -104vh); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .embers { display: none; }
+  #scene.shaking { animation: none; }
+  .fight, .scene { animation: none; }
+  .particle { display: none; }
+  .avatar.defeated { animation: none; opacity: 0; }
 }
 
 .topbar {
@@ -266,6 +300,7 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 32px;
+  animation: scene-in 260ms ease both;
 }
 
 .combatants {
@@ -327,6 +362,55 @@ html, body {
 
 .avatar.hit { animation: hit-shake 280ms ease; }
 .avatar.cast { animation: cast-pulse 380ms ease; }
+
+.avatar.defeated {
+  animation: enemy-defeat 700ms ease forwards;
+  pointer-events: none;
+}
+
+@keyframes enemy-defeat {
+  0% { transform: scale(1) translateY(0) rotate(0); opacity: 1; filter: none; }
+  100% { transform: scale(0.62) translateY(26px) rotate(-10deg); opacity: 0; filter: grayscale(1) brightness(0.5); }
+}
+
+.particle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  animation: particle-fly 620ms ease-out forwards;
+  animation-delay: var(--delay, 0ms);
+}
+
+.particle-spark {
+  background: var(--gold-bright);
+  box-shadow: 0 0 6px rgba(243, 197, 74, 0.9);
+}
+
+.particle-ember {
+  background: var(--crimson-light);
+  box-shadow: 0 0 5px rgba(146, 30, 30, 0.8);
+}
+
+@keyframes particle-fly {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--dx, 0)), calc(-50% + var(--dy, 0))) scale(0.25); opacity: 0; }
+}
+
+#scene.shaking { animation: screen-shake 240ms ease; }
+
+@keyframes screen-shake {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-3px, 2px); }
+  40% { transform: translate(3px, -2px); }
+  60% { transform: translate(-2px, 1px); }
+  80% { transform: translate(2px, -1px); }
+}
 
 .avatar.enraged {
   filter: hue-rotate(-15deg) saturate(1.5) brightness(1.05);
@@ -747,6 +831,12 @@ html, body {
   flex-direction: column;
   gap: 28px;
   align-items: center;
+  animation: scene-in 260ms ease both;
+}
+
+@keyframes scene-in {
+  0% { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 .encounter-header {
