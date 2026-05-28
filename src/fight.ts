@@ -1,0 +1,407 @@
+import { t, randomWord, onLocaleChange, renderTextWithDropCap } from './i18n';
+import type { Enemy } from './enemies';
+import type { PlayerStats } from './state';
+import type { FightOutcome } from './stats';
+
+const BASE_DAMAGE = 22;
+const MIN_DURATION_MS = 1500;
+
+const TIER_PERFECT_MAX = 0.32;
+const TIER_GREAT_MAX = 0.62;
+
+type Tier = 'perfect' | 'great' | 'good';
+
+const TIER_MULT: Record<Tier, number> = {
+  perfect: 1.5,
+  great: 1.2,
+  good: 1.0,
+};
+
+const ATTACK_COMBO_MULT: Record<number, number> = { 1: 1.0, 2: 1.6, 3: 2.2 };
+const PLAYER_DMG_COMBO_MULT: Record<number, number> = { 1: 1.0, 2: 1.4, 3: 1.7 };
+
+export interface FightProps {
+  enemy: Enemy;
+  player: PlayerStats;
+  onWin: (remainingHP: number, outcome: FightOutcome) => void;
+  onLose: (outcome: FightOutcome) => void;
+}
+
+type Status = 'fighting' | 'won' | 'lost';
+
+interface State {
+  playerHP: number;
+  enemyHP: number;
+  word: string | null;
+  wordCount: number;
+  typed: string;
+  wordSpawnedAt: number;
+  wordDuration: number;
+  status: Status;
+}
+
+export function mountFight(host: HTMLElement, props: FightProps): () => void {
+  const { enemy, player, onWin, onLose } = props;
+
+  host.innerHTML = `
+    <div class="fight">
+      <div class="combatants">
+        <div class="combatant enemy">
+          <span class="corner corner-tl"></span>
+          <span class="corner corner-tr"></span>
+          <span class="corner corner-bl"></span>
+          <span class="corner corner-br"></span>
+          <div class="avatar enemy-avatar">${enemy.sprite}</div>
+          <div class="meta">
+            <div class="name with-drop-cap" data-i18n="${enemy.nameKey}"></div>
+            <div class="hp-bar"><div class="hp-fill enemy-hp"></div></div>
+            <div class="hp-text enemy-hp-text"></div>
+          </div>
+        </div>
+        <div class="vs" aria-label="versus">⚔</div>
+        <div class="combatant player">
+          <span class="corner corner-tl"></span>
+          <span class="corner corner-tr"></span>
+          <span class="corner corner-bl"></span>
+          <span class="corner corner-br"></span>
+          <div class="meta">
+            <div class="name with-drop-cap" data-i18n="you"></div>
+            <div class="hp-bar"><div class="hp-fill player-hp"></div></div>
+            <div class="hp-text player-hp-text"></div>
+          </div>
+          <div class="avatar player-avatar">🛡️</div>
+        </div>
+      </div>
+
+      <div class="track" aria-hidden="true">
+        <span class="corner corner-tl"></span>
+        <span class="corner corner-tr"></span>
+        <span class="corner corner-bl"></span>
+        <span class="corner corner-br"></span>
+        <div class="track-rail"></div>
+        <div class="hit-zone"></div>
+        <div class="word">
+          <span class="typed"></span><span class="cursor"></span><span class="rest"></span>
+        </div>
+        <div class="floater"></div>
+      </div>
+
+      <div class="banner"></div>
+      <p class="hint" data-i18n="hint"></p>
+    </div>
+  `;
+
+  const root = host.querySelector('.fight') as HTMLElement;
+  const els = {
+    word: root.querySelector('.word') as HTMLElement,
+    typed: root.querySelector('.word .typed') as HTMLElement,
+    cursor: root.querySelector('.word .cursor') as HTMLElement,
+    rest: root.querySelector('.word .rest') as HTMLElement,
+    track: root.querySelector('.track') as HTMLElement,
+    playerHP: root.querySelector('.player-hp') as HTMLElement,
+    enemyHP: root.querySelector('.enemy-hp') as HTMLElement,
+    playerHPText: root.querySelector('.player-hp-text') as HTMLElement,
+    enemyHPText: root.querySelector('.enemy-hp-text') as HTMLElement,
+    floater: root.querySelector('.floater') as HTMLElement,
+    banner: root.querySelector('.banner') as HTMLElement,
+    enemyCombatant: root.querySelector('.combatant.enemy') as HTMLElement,
+    enemyAvatar: root.querySelector('.enemy-avatar') as HTMLElement,
+    playerAvatar: root.querySelector('.player-avatar') as HTMLElement,
+  };
+
+  const state: State = {
+    playerHP: player.hp,
+    enemyHP: enemy.maxHP,
+    word: null,
+    wordCount: 1,
+    typed: '',
+    wordSpawnedAt: 0,
+    wordDuration: 0,
+    status: 'fighting',
+  };
+
+  let currentMsPerChar = enemy.msPerChar;
+  let currentSpawnDelay = enemy.spawnDelayMs;
+  let currentComboChance = enemy.comboChance;
+  let phaseTriggered = false;
+
+  let spawnTimer: number | null = null;
+  let rafHandle: number | null = null;
+  let resolved = false;
+
+  let firstSpawnAt = 0;
+  let correctChars = 0;
+
+  function applyI18n() {
+    root.querySelectorAll<HTMLElement>('[data-i18n]').forEach((el) => {
+      const text = t(el.dataset.i18n!);
+      if (el.classList.contains('with-drop-cap')) {
+        renderTextWithDropCap(el, text);
+      } else {
+        el.textContent = text;
+      }
+    });
+  }
+
+  const offLocale = onLocaleChange(() => {
+    applyI18n();
+    if (state.status === 'won' || state.status === 'lost') {
+      renderTextWithDropCap(els.banner, state.status === 'won' ? t('victory') : t('defeat'));
+    } else if (state.word) {
+      cancelSpawn();
+      state.word = null;
+      state.typed = '';
+      state.wordCount = 1;
+      els.word.classList.remove('active');
+      renderWord();
+      scheduleSpawn(180);
+    }
+  });
+
+  function cancelSpawn() {
+    if (spawnTimer != null) {
+      clearTimeout(spawnTimer);
+      spawnTimer = null;
+    }
+  }
+
+  function scheduleSpawn(delay = currentSpawnDelay) {
+    cancelSpawn();
+    spawnTimer = window.setTimeout(spawnWord, delay);
+  }
+
+  function rollWordCount(): number {
+    if (Math.random() >= currentComboChance) return 1;
+    if (enemy.comboMaxWords <= 2) return 2;
+    return Math.random() < 0.5 ? 2 : 3;
+  }
+
+  function spawnWord() {
+    if (state.status !== 'fighting') return;
+    const wordCount = rollWordCount();
+    const parts: string[] = [];
+    for (let i = 0; i < wordCount; i++) parts.push(randomWord());
+    const phrase = parts.join(' ');
+    state.word = phrase;
+    state.wordCount = wordCount;
+    state.typed = '';
+    state.wordSpawnedAt = performance.now();
+    state.wordDuration = Math.max(MIN_DURATION_MS, phrase.length * currentMsPerChar);
+    if (firstSpawnAt === 0) firstSpawnAt = state.wordSpawnedAt;
+    renderWord();
+    els.word.classList.add('active');
+    els.word.classList.toggle('combo', wordCount > 1);
+    els.enemyAvatar.classList.remove('cast');
+    void els.enemyAvatar.offsetWidth;
+    els.enemyAvatar.classList.add('cast');
+  }
+
+  function renderWord() {
+    if (!state.word) {
+      els.typed.textContent = '';
+      els.cursor.textContent = '';
+      els.rest.textContent = '';
+      return;
+    }
+    const w = state.word;
+    const i = state.typed.length;
+    els.typed.textContent = w.slice(0, i);
+    els.cursor.textContent = w[i] ?? '';
+    els.rest.textContent = w.slice(i + 1);
+  }
+
+  function renderHP() {
+    const playerPct = (state.playerHP / player.maxHP) * 100;
+    const enemyPct = (state.enemyHP / enemy.maxHP) * 100;
+    els.playerHP.style.width = `${playerPct}%`;
+    els.enemyHP.style.width = `${enemyPct}%`;
+    const ratio = Math.max(0, Math.min(1, state.playerHP / player.maxHP));
+    els.playerHP.style.setProperty('--hp-hue', (ratio * 105).toString());
+    els.playerHPText.textContent = `${state.playerHP} / ${player.maxHP}`;
+    els.enemyHPText.textContent = `${state.enemyHP} / ${enemy.maxHP}`;
+  }
+
+  function onKeyDown(e: KeyboardEvent) {
+    if (state.status !== 'fighting' || !state.word) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+    if (e.key === 'Backspace') {
+      if (state.typed.length > 0) {
+        state.typed = state.typed.slice(0, -1);
+        renderWord();
+      }
+      e.preventDefault();
+      return;
+    }
+
+    if (e.key.length !== 1) return;
+    const expected = state.word[state.typed.length];
+    if (!expected) return;
+
+    const expectedLower = expected.toLowerCase();
+    const keyLower = e.key.toLowerCase();
+    if (keyLower === expectedLower) {
+      state.typed += expected;
+      correctChars += 1;
+      renderWord();
+      if (state.typed.length === state.word.length) {
+        resolveCompletion();
+      }
+    } else {
+      flashTypo();
+    }
+  }
+
+  function classifyTier(progress: number): Tier {
+    if (progress < TIER_PERFECT_MAX) return 'perfect';
+    if (progress < TIER_GREAT_MAX) return 'great';
+    return 'good';
+  }
+
+  function resolveCompletion() {
+    const elapsed = performance.now() - state.wordSpawnedAt;
+    const progress = elapsed / state.wordDuration;
+    const tier = classifyTier(progress);
+    const comboMult = ATTACK_COMBO_MULT[state.wordCount] ?? 1;
+    const dmg = Math.round(BASE_DAMAGE * TIER_MULT[tier] * comboMult * player.atkMult);
+    state.enemyHP = Math.max(0, state.enemyHP - dmg);
+    showHit('enemy', dmg, tier);
+    hitFlash(els.enemyAvatar);
+    state.word = null;
+    state.typed = '';
+    state.wordCount = 1;
+    els.word.classList.remove('active', 'combo');
+    renderWord();
+    renderHP();
+    checkPhaseChange();
+    if (state.enemyHP === 0) {
+      endFight('won');
+    } else {
+      scheduleSpawn();
+    }
+  }
+
+  function loop() {
+    if (state.status === 'fighting' && state.word) {
+      const elapsed = performance.now() - state.wordSpawnedAt;
+      const progress = Math.min(1, elapsed / state.wordDuration);
+      positionWord(progress);
+
+      if (progress >= 1) {
+        enemyHits();
+      }
+    }
+    rafHandle = requestAnimationFrame(loop);
+  }
+
+  function positionWord(progress: number) {
+    const trackW = els.track.clientWidth;
+    const wordW = els.word.clientWidth;
+    const maxOffset = Math.max(0, trackW - wordW - 28);
+    const x = -maxOffset * progress;
+    els.word.style.transform = `translate(${x}px, -50%)`;
+  }
+
+  function enemyHits() {
+    const dmgMult = PLAYER_DMG_COMBO_MULT[state.wordCount] ?? 1;
+    const dmg = Math.round(enemy.hitDamage * dmgMult);
+    state.playerHP = Math.max(0, state.playerHP - dmg);
+    showHit('player', dmg);
+    hitFlash(els.playerAvatar);
+    state.word = null;
+    state.typed = '';
+    state.wordCount = 1;
+    els.word.classList.remove('active', 'combo');
+    renderWord();
+    renderHP();
+    if (state.playerHP === 0) {
+      endFight('lost');
+    } else {
+      scheduleSpawn();
+    }
+  }
+
+  function showHit(who: 'player' | 'enemy', dmg: number, tier?: Tier) {
+    const node = document.createElement('div');
+    node.className = `damage damage-${who}`;
+    if (tier && tier !== 'good') node.classList.add(`tier-${tier}`);
+    const tierLabel = tier === 'perfect' ? t('tier_perfect') : tier === 'great' ? t('tier_great') : '';
+    if (tierLabel) {
+      const label = document.createElement('span');
+      label.className = 'tier-label';
+      label.textContent = tierLabel;
+      const amount = document.createElement('span');
+      amount.className = 'tier-amount';
+      amount.textContent = `-${dmg}`;
+      node.append(label, amount);
+    } else {
+      node.textContent = `-${dmg}`;
+    }
+    els.floater.appendChild(node);
+    setTimeout(() => node.remove(), 1000);
+  }
+
+  function hitFlash(el: HTMLElement) {
+    el.classList.remove('hit');
+    void el.offsetWidth;
+    el.classList.add('hit');
+  }
+
+  function flashTypo() {
+    els.word.classList.remove('typo');
+    void els.word.offsetWidth;
+    els.word.classList.add('typo');
+  }
+
+  function checkPhaseChange() {
+    if (phaseTriggered || !enemy.phaseChange) return;
+    const ratio = state.enemyHP / enemy.maxHP;
+    if (ratio > enemy.phaseChange.triggerHPRatio) return;
+    phaseTriggered = true;
+    currentMsPerChar = enemy.phaseChange.msPerChar;
+    currentSpawnDelay = enemy.phaseChange.spawnDelayMs;
+    currentComboChance = enemy.phaseChange.comboChance;
+    els.enemyAvatar.classList.add('enraged');
+    const banner = document.createElement('div');
+    banner.className = 'phase-banner';
+    banner.textContent = t('enraged');
+    els.enemyCombatant.appendChild(banner);
+    setTimeout(() => banner.remove(), 1600);
+  }
+
+  function computeOutcome(): FightOutcome {
+    const elapsedMs = firstSpawnAt ? performance.now() - firstSpawnAt : 0;
+    const minutes = elapsedMs / 60000;
+    const wpm = minutes > 0 ? Math.round(correctChars / 5 / minutes) : 0;
+    return { wpm, correctChars, elapsedMs };
+  }
+
+  function endFight(result: 'won' | 'lost') {
+    if (resolved) return;
+    state.status = result;
+    els.word.classList.remove('active', 'combo');
+    renderTextWithDropCap(els.banner, result === 'won' ? t('victory') : t('defeat'));
+    els.banner.dataset.state = result;
+    els.banner.classList.add('show');
+    resolved = true;
+    cancelSpawn();
+    const outcome = computeOutcome();
+    window.setTimeout(() => {
+      if (result === 'won') onWin(state.playerHP, outcome);
+      else onLose(outcome);
+    }, 1400);
+  }
+
+  applyI18n();
+  renderHP();
+  document.addEventListener('keydown', onKeyDown);
+  scheduleSpawn(500);
+  loop();
+
+  return () => {
+    cancelSpawn();
+    if (rafHandle != null) cancelAnimationFrame(rafHandle);
+    document.removeEventListener('keydown', onKeyDown);
+    offLocale();
+  };
+}

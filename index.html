@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Type Fighter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Cinzel+Decorative:wght@700;900&family=EB+Garamond:ital,wght@0,400;0,500;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <h1 class="brand with-drop-cap" data-i18n="title"></h1>
+        <div class="topbar-actions">
+          <button class="stats-button" id="stats-button" type="button" data-i18n="stats_button"></button>
+          <div class="lang-switcher" role="tablist" aria-label="language">
+            <button data-locale="en" type="button">EN</button>
+            <button data-locale="de" type="button">DE</button>
+          </div>
+        </div>
+      </header>
+      <main id="scene"></main>
+    </div>
+    <dialog id="stats-modal" class="stats-modal">
+      <div class="modal-card">
+        <span class="corner corner-tl"></span>
+        <span class="corner corner-tr"></span>
+        <span class="corner corner-bl"></span>
+        <span class="corner corner-br"></span>
+        <h2 class="modal-title with-drop-cap" data-i18n="stats_title"></h2>
+        <div id="stats-content" class="stats-content"></div>
+        <button class="modal-close begin-fight" type="button" data-i18n="stats_close"></button>
+      </div>
+    </dialog>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
