@@ -265,7 +265,7 @@ function scalePhase(phase: PhaseChange, speedScale: number, comboAdd: number): P
 
 // Produce a depth-scaled copy of a base enemy: tougher, faster, and more
 // combo-prone the deeper the endless run goes.
-function scaleEnemy(base: Enemy, depth: number): Enemy {
+export function scaleEnemy(base: Enemy, depth: number): Enemy {
   const steps = depth - 1;
   const hpScale = 1 + 0.2 * steps;
   const dmgScale = 1 + 0.1 * steps;
