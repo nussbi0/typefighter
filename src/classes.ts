@@ -34,6 +34,22 @@ export const classes: HeroClass[] = [
     stats: { maxHP: 95, critChance: 0.18 },
     favoredBoons: ['precision', 'might', 'bloodthirst', 'frenzy'],
   },
+  {
+    id: 'templar',
+    nameKey: 'class_templar',
+    descKey: 'class_templar_desc',
+    sprite: '⚜️',
+    stats: { maxHP: 115, regen: 1 },
+    favoredBoons: ['renewal', 'bulwark', 'sentinel', 'mend'],
+  },
+  {
+    id: 'berserker',
+    nameKey: 'class_berserker',
+    descKey: 'class_berserker_desc',
+    sprite: '🪓',
+    stats: { maxHP: 90, atkMult: 1.15 },
+    favoredBoons: ['might', 'frenzy', 'execution', 'bloodthirst'],
+  },
 ];
 
 export function findClass(id: string): HeroClass {

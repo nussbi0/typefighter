@@ -235,12 +235,20 @@ function showEncounter(run: RunState) {
   );
 }
 
+function wordLevelFor(run: RunState): number {
+  // Endless scales word difficulty with depth; Classic uses the foe's tier.
+  return run.mode === 'endless'
+    ? 1 + Math.floor((run.fightNumber - 1) / 2)
+    : run.upcomingEnemy.tier;
+}
+
 function showFight(run: RunState) {
   show((host) =>
     mountFight(host, {
       enemy: run.upcomingEnemy,
       player: run.player,
       playerSprite: run.heroClass.sprite,
+      wordLevel: wordLevelFor(run),
       onWin: (remainingHP, outcome) => {
         runBestWPM = Math.max(runBestWPM, outcome.wpm);
         recordFightOutcome(outcome, getLocale());

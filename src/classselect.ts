@@ -68,8 +68,8 @@ export function mountClassSelect(host: HTMLElement, props: ClassSelectProps): ()
   }
 
   function onKey(e: KeyboardEvent) {
-    const idx = ['1', '2', '3'].indexOf(e.key);
-    if (idx >= 0 && classes[idx]) {
+    const idx = Number(e.key) - 1;
+    if (Number.isInteger(idx) && idx >= 0 && classes[idx]) {
       e.preventDefault();
       pick(classes[idx]);
     }

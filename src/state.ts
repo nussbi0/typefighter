@@ -10,6 +10,7 @@ export interface PlayerStats {
   level: number;
   defense: number;
   critChance: number;
+  critMult: number;
   lifesteal: number;
   comboBonus: number;
   timeFactor: number;
@@ -39,6 +40,7 @@ function baseStats(): PlayerStats {
     level: 1,
     defense: 0,
     critChance: 0,
+    critMult: 2.0,
     lifesteal: 0,
     comboBonus: 0,
     timeFactor: 1.0,
@@ -74,6 +76,7 @@ export function combatStatLines(p: PlayerStats): CombatStatLine[] {
   const lines: CombatStatLine[] = [];
   if (p.defense > 0) lines.push({ key: 'stat_def', value: String(p.defense) });
   if (p.critChance > 0) lines.push({ key: 'stat_crit', value: `${Math.round(p.critChance * 100)}%` });
+  if (p.critMult > 2) lines.push({ key: 'stat_critdmg', value: `${p.critMult.toFixed(1)}×` });
   if (p.lifesteal > 0) lines.push({ key: 'stat_lifesteal', value: `${Math.round(p.lifesteal * 100)}%` });
   if (p.comboBonus > 0) lines.push({ key: 'stat_combo', value: `+${Math.round(p.comboBonus * 100)}%` });
   if (p.timeFactor > 1) lines.push({ key: 'stat_focus', value: `+${Math.round((p.timeFactor - 1) * 100)}%` });
@@ -208,6 +211,26 @@ export const upgrades: Upgrade[] = [
     icon: '⟳',
     apply: (p) => {
       p.regen += 2;
+    },
+  },
+  {
+    id: 'execution',
+    nameKey: 'upgrade_execution',
+    descKey: 'upgrade_execution_desc',
+    icon: '☠',
+    apply: (p) => {
+      p.critMult = Math.min(4, Math.round((p.critMult + 0.5) * 10) / 10);
+    },
+  },
+  {
+    id: 'sentinel',
+    nameKey: 'upgrade_sentinel',
+    descKey: 'upgrade_sentinel_desc',
+    icon: '⛨',
+    apply: (p) => {
+      p.defense += 3;
+      p.maxHP += 15;
+      p.hp = Math.min(p.maxHP, p.hp + 15);
     },
   },
 ];

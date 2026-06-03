@@ -1,4 +1,5 @@
-import { t, randomWord, onLocaleChange, renderTextWithDropCap } from './i18n';
+import { t, onLocaleChange, renderTextWithDropCap } from './i18n';
+import { randomWord } from './words';
 import { sfxEnrage, sfxHurt, sfxLose, sfxStrike, sfxType, sfxTypo, sfxWin } from './audio';
 import { announce } from './a11y';
 import type { Enemy } from './enemies';
@@ -26,6 +27,7 @@ export interface FightProps {
   enemy: Enemy;
   player: PlayerStats;
   playerSprite: string;
+  wordLevel: number;
   onWin: (remainingHP: number, outcome: FightOutcome) => void;
   onLose: (outcome: FightOutcome) => void;
 }
@@ -44,7 +46,7 @@ interface State {
 }
 
 export function mountFight(host: HTMLElement, props: FightProps): () => void {
-  const { enemy, player, playerSprite, onWin, onLose } = props;
+  const { enemy, player, playerSprite, wordLevel, onWin, onLose } = props;
 
   host.innerHTML = `
     <div class="fight">
@@ -183,7 +185,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     if (state.status !== 'fighting') return;
     const wordCount = rollWordCount();
     const parts: string[] = [];
-    for (let i = 0; i < wordCount; i++) parts.push(randomWord());
+    for (let i = 0; i < wordCount; i++) parts.push(randomWord(wordLevel));
     const phrase = parts.join(' ');
     state.word = phrase;
     state.wordCount = wordCount;
@@ -271,7 +273,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     if (state.wordCount > 1) comboMult += player.comboBonus;
     let dmg = Math.round(BASE_DAMAGE * TIER_MULT[tier] * comboMult * player.atkMult);
     const crit = Math.random() < player.critChance;
-    if (crit) dmg *= 2;
+    if (crit) dmg = Math.round(dmg * player.critMult);
     const wasCombo = state.wordCount > 1;
     state.enemyHP = Math.max(0, state.enemyHP - dmg);
     sfxStrike(tier, crit);

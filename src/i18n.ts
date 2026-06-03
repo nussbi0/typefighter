@@ -47,11 +47,16 @@ const messages: Record<Locale, Messages> = {
     upgrade_focus_desc: 'Words approach 12% slower.',
     upgrade_renewal: 'Renewal',
     upgrade_renewal_desc: 'Recover 2 HP per word typed.',
+    upgrade_execution: 'Execution',
+    upgrade_execution_desc: 'Critical strikes deal +0.5× damage.',
+    upgrade_sentinel: 'Sentinel',
+    upgrade_sentinel_desc: '+3 defense and +15 max HP.',
 
     levelup_reroll: 'Reroll ({n})',
     boon_favored: 'Favored',
     stat_def: 'Def',
     stat_crit: 'Crit',
+    stat_critdmg: 'Crit dmg',
     stat_lifesteal: 'Lifesteal',
     stat_combo: 'Combo',
     stat_focus: 'Focus',
@@ -127,6 +132,10 @@ const messages: Record<Locale, Messages> = {
     class_mage_desc: 'Frail but devastating — combos strike far harder.',
     class_rogue: 'Rogue',
     class_rogue_desc: "A duelist's eye — innate critical chance.",
+    class_templar: 'Templar',
+    class_templar_desc: 'Holy endurance — steady regen and stout health.',
+    class_berserker: 'Berserker',
+    class_berserker_desc: 'Reckless fury — hits hard but frail.',
 
     branch_title: 'A crossroads',
     branch_subtitle: 'Two foes lie ahead — choose your trial.',
@@ -179,11 +188,16 @@ const messages: Record<Locale, Messages> = {
     upgrade_focus_desc: 'Wörter nahen 12% langsamer.',
     upgrade_renewal: 'Erneuerung',
     upgrade_renewal_desc: 'Heile 2 LP pro getipptem Wort.',
+    upgrade_execution: 'Hinrichtung',
+    upgrade_execution_desc: 'Kritische Treffer verursachen +0,5× Schaden.',
+    upgrade_sentinel: 'Wächter',
+    upgrade_sentinel_desc: '+3 Verteidigung und +15 max LP.',
 
     levelup_reroll: 'Neu mischen ({n})',
     boon_favored: 'Bevorzugt',
     stat_def: 'Vert',
     stat_crit: 'Krit',
+    stat_critdmg: 'Kritschaden',
     stat_lifesteal: 'Lebensraub',
     stat_combo: 'Kombo',
     stat_focus: 'Fokus',
@@ -259,6 +273,10 @@ const messages: Record<Locale, Messages> = {
     class_mage_desc: 'Zerbrechlich, doch verheerend — Kombos treffen härter.',
     class_rogue: 'Schurke',
     class_rogue_desc: 'Das Auge des Duellanten — angeborene Kritchance.',
+    class_templar: 'Templer',
+    class_templar_desc: 'Heilige Ausdauer — stetige Regeneration und robuste LP.',
+    class_berserker: 'Berserker',
+    class_berserker_desc: 'Rücksichtslose Wut — trifft hart, doch zerbrechlich.',
 
     branch_title: 'Eine Wegkreuzung',
     branch_subtitle: 'Zwei Feinde stehen bereit — wähle deine Prüfung.',
@@ -269,25 +287,6 @@ const messages: Record<Locale, Messages> = {
     encounter_healed: '+{n} LP wiederhergestellt',
     encounter_max_boost: '+{n} max LP',
   },
-};
-
-const words: Record<Locale, string[]> = {
-  en: [
-    'sword', 'shield', 'arrow', 'flame', 'frost', 'spark', 'blade', 'armor',
-    'storm', 'light', 'shadow', 'magic', 'spell', 'potion', 'wizard', 'dragon',
-    'quest', 'attack', 'defend', 'strike', 'parry', 'dodge', 'focus', 'breath',
-    'iron', 'steel', 'silver', 'golden', 'quick', 'strong', 'swift', 'brave',
-    'hero', 'goblin', 'dungeon', 'tower', 'castle', 'forest', 'river', 'mountain',
-    'gleam', 'crash', 'smash', 'rage', 'calm', 'steady', 'sharp', 'ember',
-  ],
-  de: [
-    'schwert', 'schild', 'pfeil', 'flamme', 'frost', 'funke', 'klinge', 'panzer',
-    'sturm', 'licht', 'schatten', 'magie', 'zauber', 'trank', 'hexer', 'drache',
-    'quest', 'angriff', 'schutz', 'schlag', 'parade', 'ausweichen', 'fokus', 'atem',
-    'eisen', 'stahl', 'silber', 'golden', 'schnell', 'stark', 'flink', 'tapfer',
-    'held', 'goblin', 'höhle', 'turm', 'burg', 'wald', 'fluss', 'berg',
-    'glanz', 'krach', 'wut', 'ruhe', 'scharf', 'glut', 'mut', 'ehre',
-  ],
 };
 
 const LOCALE_STORAGE_KEY = 'typefighter.locale.v1';
@@ -341,10 +340,6 @@ export function t(key: string, params?: Params): string {
   return str;
 }
 
-export function randomWord(): string {
-  const list = words[current];
-  return list[Math.floor(Math.random() * list.length)];
-}
 
 export function renderTextWithDropCap(el: HTMLElement, text: string): void {
   el.textContent = '';
