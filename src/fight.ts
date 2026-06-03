@@ -28,6 +28,7 @@ export interface FightProps {
   player: PlayerStats;
   playerSprite: string;
   wordLevel: number;
+  passive?: string;
   onWin: (remainingHP: number, outcome: FightOutcome) => void;
   onLose: (outcome: FightOutcome) => void;
 }
@@ -46,7 +47,7 @@ interface State {
 }
 
 export function mountFight(host: HTMLElement, props: FightProps): () => void {
-  const { enemy, player, playerSprite, wordLevel, onWin, onLose } = props;
+  const { enemy, player, playerSprite, wordLevel, passive, onWin, onLose } = props;
 
   host.innerHTML = `
     <div class="fight">
@@ -137,6 +138,15 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   let firstSpawnAt = 0;
   let correctChars = 0;
 
+  // Enemy status effects + per-class passive bookkeeping
+  let poisonStacks = 0;
+  let lastPoisonTick = 0;
+  let firstStrike = true; // rogue Ambush
+  let guardUsed = false; // knight Guard
+  let wordsCompleted = 0; // mage Overload counter
+
+  const POISON_INTERVAL_MS = 1000;
+
   function applyI18n() {
     root.querySelectorAll<HTMLElement>('[data-i18n]').forEach((el) => {
       const text = t(el.dataset.i18n!);
@@ -183,6 +193,12 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
 
   function spawnWord() {
     if (state.status !== 'fighting') return;
+    // Troll/Kraken — regeneration between attacks
+    if (enemy.regen && state.enemyHP > 0 && state.enemyHP < enemy.maxHP) {
+      state.enemyHP = Math.min(enemy.maxHP, state.enemyHP + enemy.regen);
+      showFloat('heal heal-enemy', `+${enemy.regen}`);
+      renderHP();
+    }
     const wordCount = rollWordCount();
     const parts: string[] = [];
     for (let i = 0; i < wordCount; i++) parts.push(randomWord(wordLevel));
@@ -271,16 +287,36 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     const tier = classifyTier(progress);
     let comboMult = ATTACK_COMBO_MULT[state.wordCount] ?? 1;
     if (state.wordCount > 1) comboMult += player.comboBonus;
-    let dmg = Math.round(BASE_DAMAGE * TIER_MULT[tier] * comboMult * player.atkMult);
-    const crit = Math.random() < player.critChance;
+    let dmg = BASE_DAMAGE * TIER_MULT[tier] * comboMult * player.atkMult;
+
+    // Berserker — Bloodlust: harder you bleed, harder you hit
+    if (passive === 'bloodlust') {
+      const missing = 1 - state.playerHP / player.maxHP;
+      dmg *= 1 + missing * 0.5;
+    }
+    // Mage — Overload: every fourth strike detonates for double
+    wordsCompleted += 1;
+    const overload = passive === 'overload' && wordsCompleted % 4 === 0;
+    if (overload) dmg *= 2;
+
+    dmg = Math.round(dmg);
+
+    // Rogue — Ambush: the opening strike of a fight always crits
+    let crit = Math.random() < player.critChance;
+    if (passive === 'ambush' && firstStrike) crit = true;
+    firstStrike = false;
     if (crit) dmg = Math.round(dmg * player.critMult);
+
+    // Golem etc — armor blunts the blow
+    if (enemy.armor) dmg = Math.max(1, dmg - enemy.armor);
+
     const wasCombo = state.wordCount > 1;
     state.enemyHP = Math.max(0, state.enemyHP - dmg);
     sfxStrike(tier, crit);
     showHit('enemy', dmg, tier, crit);
     hitFlash(els.enemyAvatar);
     applyHeal(Math.round(dmg * player.lifesteal) + player.regen);
-    if (crit) {
+    if (crit || overload) {
       spawnBurst(els.enemyAvatar, 'spark', 9);
       shake();
     } else if (wasCombo) {
@@ -312,15 +348,32 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     if (applied > 0) showHeal(applied);
   }
 
+  function showFloat(className: string, text: string) {
+    const node = document.createElement('div');
+    node.className = className;
+    node.textContent = text;
+    els.floater.appendChild(node);
+    setTimeout(() => node.remove(), 1000);
+  }
+
   function loop() {
+    const now = performance.now();
     if (state.status === 'fighting' && state.word) {
-      const elapsed = performance.now() - state.wordSpawnedAt;
-      const progress = Math.min(1, elapsed / state.wordDuration);
+      const progress = Math.min(1, (now - state.wordSpawnedAt) / state.wordDuration);
       positionWord(progress);
 
       if (progress >= 1) {
         enemyHits();
       }
+    }
+    if (state.status === 'fighting' && poisonStacks > 0 && now - lastPoisonTick >= POISON_INTERVAL_MS) {
+      lastPoisonTick = now;
+      const tick = poisonStacks;
+      state.playerHP = Math.max(0, state.playerHP - tick);
+      showFloat('poison', `-${tick} ☠`);
+      poisonStacks -= 1;
+      renderHP();
+      if (state.playerHP === 0) endFight('lost');
     }
     rafHandle = requestAnimationFrame(loop);
   }
@@ -336,13 +389,32 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   function enemyHits() {
     const dmgMult = PLAYER_DMG_COMBO_MULT[state.wordCount] ?? 1;
     const raw = Math.round(enemy.hitDamage * dmgMult);
-    const dmg = Math.max(1, raw - player.defense);
+    let dmg = Math.max(1, raw - player.defense);
+    // Knight — Guard: the first blow of each fight is halved
+    if (passive === 'guard' && !guardUsed) {
+      dmg = Math.max(1, Math.ceil(dmg / 2));
+      guardUsed = true;
+      showFloat('guard', t('passive_guard'));
+    }
     state.playerHP = Math.max(0, state.playerHP - dmg);
     sfxHurt();
     showHit('player', dmg);
     hitFlash(els.playerAvatar);
     spawnBurst(els.playerAvatar, 'ember', 7);
     shake();
+    // Vampire — lifesteal: the foe drinks from the wound
+    if (enemy.lifesteal) {
+      const healed = Math.round(dmg * enemy.lifesteal);
+      if (healed > 0) {
+        state.enemyHP = Math.min(enemy.maxHP, state.enemyHP + healed);
+        showFloat('heal heal-enemy', `+${healed}`);
+      }
+    }
+    // Spider/Wraith — poison: lingering damage over time
+    if (enemy.poison) {
+      if (poisonStacks === 0) lastPoisonTick = performance.now();
+      poisonStacks += enemy.poison;
+    }
     state.word = null;
     state.typed = '';
     state.wordCount = 1;
@@ -462,6 +534,9 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
       else onLose(outcome);
     }, 1400);
   }
+
+  // Templar — Consecration: enter each fight with renewed vigor
+  if (passive === 'consecration') applyHeal(12);
 
   applyI18n();
   renderHP();

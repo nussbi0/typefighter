@@ -249,6 +249,7 @@ function showFight(run: RunState) {
       player: run.player,
       playerSprite: run.heroClass.sprite,
       wordLevel: wordLevelFor(run),
+      passive: run.heroClass.passive,
       onWin: (remainingHP, outcome) => {
         runBestWPM = Math.max(runBestWPM, outcome.wpm);
         recordFightOutcome(outcome, getLocale());

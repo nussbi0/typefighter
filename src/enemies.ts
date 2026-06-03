@@ -18,6 +18,11 @@ export interface Enemy {
   tier: 1 | 2 | 3 | 4 | 5;
   phaseChange?: PhaseChange;
   isBoss?: boolean;
+  // Special abilities (optional):
+  armor?: number; // flat reduction of damage you deal
+  regen?: number; // HP the foe heals each time it spawns a word
+  lifesteal?: number; // fraction of damage dealt to you that heals the foe
+  poison?: number; // stacks applied when it hits you (ticking damage over time)
 }
 
 export const roster: Enemy[] = [
@@ -82,6 +87,7 @@ export const roster: Enemy[] = [
     comboChance: 0.28,
     comboMaxWords: 2,
     tier: 2,
+    poison: 3,
   },
   // Tier 3
   {
@@ -107,6 +113,7 @@ export const roster: Enemy[] = [
     comboChance: 0.18,
     comboMaxWords: 2,
     tier: 3,
+    regen: 5,
   },
   {
     id: 'boar',
@@ -144,6 +151,7 @@ export const roster: Enemy[] = [
     comboChance: 0.6,
     comboMaxWords: 3,
     tier: 4,
+    poison: 4,
   },
   {
     id: 'golem',
@@ -156,6 +164,7 @@ export const roster: Enemy[] = [
     comboChance: 0.2,
     comboMaxWords: 2,
     tier: 4,
+    armor: 6,
   },
   {
     id: 'vampire',
@@ -168,6 +177,7 @@ export const roster: Enemy[] = [
     comboChance: 0.45,
     comboMaxWords: 3,
     tier: 4,
+    lifesteal: 0.5,
   },
   // Bosses
   {
@@ -207,6 +217,7 @@ export const roster: Enemy[] = [
       comboChance: 0.7,
     },
     isBoss: true,
+    lifesteal: 0.4,
   },
   {
     id: 'kraken',
@@ -226,6 +237,7 @@ export const roster: Enemy[] = [
       comboChance: 0.6,
     },
     isBoss: true,
+    regen: 7,
   },
 ];
 
@@ -280,7 +292,26 @@ export function scaleEnemy(base: Enemy, depth: number): Enemy {
     spawnDelayMs: Math.round(base.spawnDelayMs * speedScale),
     comboChance: Math.min(0.9, base.comboChance + comboAdd),
     phaseChange: base.phaseChange ? scalePhase(base.phaseChange, speedScale, comboAdd) : undefined,
+    armor: base.armor != null ? Math.round(base.armor * dmgScale) : undefined,
+    regen: base.regen != null ? Math.round(base.regen * hpScale) : undefined,
+    poison: base.poison != null ? Math.round(base.poison * dmgScale) : undefined,
+    lifesteal: base.lifesteal,
   };
+}
+
+export interface AbilityLine {
+  key: string;
+  value?: number;
+}
+
+// Localizable ability tags for previews (encounter / branch screens).
+export function enemyAbilities(enemy: Enemy): AbilityLine[] {
+  const lines: AbilityLine[] = [];
+  if (enemy.armor) lines.push({ key: 'ability_armor', value: enemy.armor });
+  if (enemy.regen) lines.push({ key: 'ability_regen', value: enemy.regen });
+  if (enemy.lifesteal) lines.push({ key: 'ability_lifesteal' });
+  if (enemy.poison) lines.push({ key: 'ability_poison' });
+  return lines;
 }
 
 export function isEndlessBossDepth(depth: number): boolean {

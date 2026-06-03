@@ -1,6 +1,12 @@
 import { t, onLocaleChange, renderTextWithDropCap } from './i18n';
-import { RUN_LENGTH, type Enemy } from './enemies';
+import { enemyAbilities, RUN_LENGTH, type Enemy } from './enemies';
 import { combatStatLines, type PlayerStats } from './state';
+
+function abilityTagsHTML(enemy: Enemy): string {
+  return enemyAbilities(enemy)
+    .map((a) => `<span class="ability-tag">${t(a.key, a.value != null ? { n: a.value } : undefined)}</span>`)
+    .join('');
+}
 
 export interface EncounterProps {
   enemy: Enemy;
@@ -37,6 +43,7 @@ export function mountEncounter(host: HTMLElement, props: EncounterProps): () => 
             <div class="stat-row"><dt data-i18n="stat_damage"></dt><dd>${enemy.hitDamage}</dd></div>
             <div class="stat-row"><dt data-i18n="stat_speed"></dt><dd>${formatSpeed(enemy.msPerChar)}</dd></div>
           </dl>
+          <div class="ability-tags" data-abilities></div>
         </div>
 
         <div class="vs vs-large" aria-label="versus">⚔</div>
@@ -67,6 +74,7 @@ export function mountEncounter(host: HTMLElement, props: EncounterProps): () => 
   const counterEl = root.querySelector('[data-counter]') as HTMLElement;
   const flavorEl = root.querySelector('[data-flavor]') as HTMLElement;
   const boonsEl = root.querySelector('[data-boons]') as HTMLElement;
+  const abilitiesEl = root.querySelector('[data-abilities]') as HTMLElement;
   const beginBtn = root.querySelector('.begin-fight') as HTMLButtonElement;
 
   function applyAll() {
@@ -78,6 +86,7 @@ export function mountEncounter(host: HTMLElement, props: EncounterProps): () => 
         el.textContent = text;
       }
     });
+    abilitiesEl.innerHTML = abilityTagsHTML(enemy);
     counterEl.textContent = endless
       ? t('encounter_depth', { n: encounterNumber })
       : t('encounter_title', { n: encounterNumber, total: RUN_LENGTH });

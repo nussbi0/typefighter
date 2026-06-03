@@ -137,6 +137,18 @@ const messages: Record<Locale, Messages> = {
     class_berserker: 'Berserker',
     class_berserker_desc: 'Reckless fury — hits hard but frail.',
 
+    passive_knight: 'Guard — halves the first hit each fight.',
+    passive_mage: 'Overload — every 4th strike deals double.',
+    passive_rogue: 'Ambush — your opening strike always crits.',
+    passive_templar: 'Consecration — heal 12 HP at each fight\'s start.',
+    passive_berserker: 'Bloodlust — more damage the lower your HP.',
+    passive_guard: 'Guard',
+
+    ability_armor: 'Armor {n}',
+    ability_regen: 'Regen {n}',
+    ability_lifesteal: 'Lifesteal',
+    ability_poison: 'Poison',
+
     branch_title: 'A crossroads',
     branch_subtitle: 'Two foes lie ahead — choose your trial.',
     modifier_refuge: 'Refuge',
@@ -277,6 +289,18 @@ const messages: Record<Locale, Messages> = {
     class_templar_desc: 'Heilige Ausdauer — stetige Regeneration und robuste LP.',
     class_berserker: 'Berserker',
     class_berserker_desc: 'Rücksichtslose Wut — trifft hart, doch zerbrechlich.',
+
+    passive_knight: 'Schutz — halbiert den ersten Treffer pro Kampf.',
+    passive_mage: 'Überladung — jeder 4. Schlag trifft doppelt.',
+    passive_rogue: 'Hinterhalt — dein erster Schlag trifft immer kritisch.',
+    passive_templar: 'Weihe — heile 12 LP zu Kampfbeginn.',
+    passive_berserker: 'Blutrausch — mehr Schaden, je weniger LP.',
+    passive_guard: 'Schutz',
+
+    ability_armor: 'Rüstung {n}',
+    ability_regen: 'Regen {n}',
+    ability_lifesteal: 'Lebensraub',
+    ability_poison: 'Gift',
 
     branch_title: 'Eine Wegkreuzung',
     branch_subtitle: 'Zwei Feinde stehen bereit — wähle deine Prüfung.',

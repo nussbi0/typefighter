@@ -7,6 +7,8 @@ export interface HeroClass {
   sprite: string;
   stats: Partial<PlayerStats>;
   favoredBoons: string[];
+  passive: string; // unique combat mechanic, resolved in fight.ts
+  passiveKey: string; // i18n key describing the passive
 }
 
 export const classes: HeroClass[] = [
@@ -17,6 +19,8 @@ export const classes: HeroClass[] = [
     sprite: '🛡️',
     stats: { maxHP: 125, defense: 3 },
     favoredBoons: ['bulwark', 'vigor', 'mend', 'renewal'],
+    passive: 'guard',
+    passiveKey: 'passive_knight',
   },
   {
     id: 'mage',
@@ -25,6 +29,8 @@ export const classes: HeroClass[] = [
     sprite: '🪄',
     stats: { maxHP: 80, comboBonus: 0.3 },
     favoredBoons: ['frenzy', 'focus', 'might', 'precision'],
+    passive: 'overload',
+    passiveKey: 'passive_mage',
   },
   {
     id: 'rogue',
@@ -33,6 +39,8 @@ export const classes: HeroClass[] = [
     sprite: '🗡️',
     stats: { maxHP: 95, critChance: 0.18 },
     favoredBoons: ['precision', 'might', 'bloodthirst', 'frenzy'],
+    passive: 'ambush',
+    passiveKey: 'passive_rogue',
   },
   {
     id: 'templar',
@@ -41,6 +49,8 @@ export const classes: HeroClass[] = [
     sprite: '⚜️',
     stats: { maxHP: 115, regen: 1 },
     favoredBoons: ['renewal', 'bulwark', 'sentinel', 'mend'],
+    passive: 'consecration',
+    passiveKey: 'passive_templar',
   },
   {
     id: 'berserker',
@@ -49,6 +59,8 @@ export const classes: HeroClass[] = [
     sprite: '🪓',
     stats: { maxHP: 90, atkMult: 1.15 },
     favoredBoons: ['might', 'frenzy', 'execution', 'bloodthirst'],
+    passive: 'bloodlust',
+    passiveKey: 'passive_berserker',
   },
 ];
 

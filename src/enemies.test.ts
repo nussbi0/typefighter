@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   endlessCandidates,
   enemiesByTier,
+  enemyAbilities,
   findEnemy,
   isEndlessBossDepth,
   scaleEnemy,
@@ -60,6 +61,30 @@ describe('scaleEnemy', () => {
     const scaled = scaleEnemy(dragon, 10);
     expect(scaled.phaseChange).toBeDefined();
     expect(scaled.phaseChange!.msPerChar).toBeLessThan(dragon.phaseChange!.msPerChar);
+  });
+
+  it('scales ability values with depth', () => {
+    const golem = findEnemy('golem'); // has armor
+    const scaled = scaleEnemy(golem, 9);
+    expect(scaled.armor!).toBeGreaterThan(golem.armor!);
+  });
+
+  it('leaves foes without an ability ability-free', () => {
+    expect(scaleEnemy(findEnemy('goblin'), 5).armor).toBeUndefined();
+  });
+});
+
+describe('enemyAbilities', () => {
+  it('lists armor and a value for the golem', () => {
+    const lines = enemyAbilities(findEnemy('golem'));
+    const armor = lines.find((l) => l.key === 'ability_armor');
+    expect(armor).toBeDefined();
+    expect(armor!.value).toBe(6);
+  });
+
+  it('lists lifesteal for the vampire and nothing for the goblin', () => {
+    expect(enemyAbilities(findEnemy('vampire')).some((l) => l.key === 'ability_lifesteal')).toBe(true);
+    expect(enemyAbilities(findEnemy('goblin'))).toHaveLength(0);
   });
 });
 

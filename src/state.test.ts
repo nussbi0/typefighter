@@ -169,4 +169,13 @@ describe('class roster', () => {
       for (const fav of c.favoredBoons) expect(ids.has(fav)).toBe(true);
     }
   });
+
+  it('every class declares a unique passive and its i18n key', () => {
+    const passives = classes.map((c) => c.passive);
+    expect(new Set(passives).size).toBe(classes.length);
+    for (const c of classes) {
+      expect(c.passive).toBeTruthy();
+      expect(c.passiveKey).toBeTruthy();
+    }
+  });
 });

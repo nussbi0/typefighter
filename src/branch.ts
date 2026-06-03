@@ -1,5 +1,5 @@
 import { onLocaleChange, renderTextWithDropCap, t } from './i18n';
-import { type Enemy } from './enemies';
+import { enemyAbilities, type Enemy } from './enemies';
 import type { Modifier, PlayerStats } from './state';
 
 export interface BranchProps {
@@ -80,6 +80,7 @@ export function mountBranch(host: HTMLElement, props: BranchProps): () => void {
         <div class="stat-row"><dt data-i18n="stat_damage"></dt><dd>${opt.enemy.hitDamage}</dd></div>
         <div class="stat-row"><dt data-i18n="stat_speed"></dt><dd>${speedStars(opt.enemy.msPerChar)}</dd></div>
       </dl>
+      <div class="ability-tags" data-abilities></div>
       <div class="branch-modifier">
         <span class="branch-modifier-icon" aria-hidden="true">${modIcon(opt.modifier)}</span>
         <div class="branch-modifier-text">
@@ -106,6 +107,14 @@ export function mountBranch(host: HTMLElement, props: BranchProps): () => void {
         renderTextWithDropCap(el, text);
       } else {
         el.textContent = text;
+      }
+    });
+    options.forEach((opt, i) => {
+      const tags = grid.querySelector(`[data-option="${i}"] [data-abilities]`);
+      if (tags) {
+        tags.innerHTML = enemyAbilities(opt.enemy)
+          .map((a) => `<span class="ability-tag">${t(a.key, a.value != null ? { n: a.value } : undefined)}</span>`)
+          .join('');
       }
     });
   }
