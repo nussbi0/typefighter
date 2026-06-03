@@ -33,9 +33,13 @@ import {
   bestWPM,
   recordEndlessEnd,
   recordFightOutcome,
+  recentDailies,
   recordRunEnd,
   recordRunStart,
+  recordSeedResult,
   totals,
+  type FightOutcome,
+  type SeedResult,
 } from './stats';
 import { endlessCandidates, enemiesByTier, findEnemy, RUN_LENGTH, type Enemy } from './enemies';
 import { initAudioPrefs, isMuted, setMuted, sfxType } from './audio';
@@ -96,10 +100,28 @@ function renderStatsModal() {
       <h3 class="annals-section-title" data-i18n="stat_runs_total"></h3>
       <div class="annals-row annals-row-solo"><span class="annals-val">${tot.runs} (${tot.clears})</span></div>
     </div>
+    ${renderDailyAnnals()}
   `;
   content.querySelectorAll<HTMLElement>('[data-i18n]').forEach((el) => {
     el.textContent = t(el.dataset.i18n!);
   });
+}
+
+function renderDailyAnnals(): string {
+  const dailies = recentDailies(5);
+  if (dailies.length === 0) return '';
+  const rows = dailies
+    .map(
+      ({ date, result }) =>
+        `<div class="annals-row"><span class="annals-key">${date}</span><span class="annals-val">${t('annals_daily_row', { depth: result.depth, wpm: result.bestWPM })}</span></div>`,
+    )
+    .join('');
+  return `
+    <div class="annals-section annals-section-full">
+      <h3 class="annals-section-title" data-i18n="annals_daily_title"></h3>
+      ${rows}
+    </div>
+  `;
 }
 
 function bindStatsModal() {
@@ -194,6 +216,7 @@ spawnEmbers(20);
 const scene = document.getElementById('scene')!;
 let cleanupScene: (() => void) | null = null;
 let runBestWPM = 0;
+let runAgg = { correct: 0, mistakes: 0, elapsedMs: 0 };
 
 function show(mount: (host: HTMLElement) => () => void) {
   if (cleanupScene) cleanupScene();
@@ -223,9 +246,17 @@ function chooseClass(mode: RunMode, seed: string = randomSeed(), daily = false) 
 
 function beginRun(heroClass: HeroClass, mode: RunMode, seed: string, daily: boolean) {
   runBestWPM = 0;
+  runAgg = { correct: 0, mistakes: 0, elapsedMs: 0 };
   recordRunStart();
   const run = newRun(heroClass, mode, seed, daily);
   showEncounter(run);
+}
+
+function tallyOutcome(outcome: FightOutcome) {
+  runBestWPM = Math.max(runBestWPM, outcome.wpm);
+  runAgg.correct += outcome.correctChars;
+  runAgg.mistakes += outcome.mistakes;
+  runAgg.elapsedMs += outcome.elapsedMs;
 }
 
 function persist(run: RunState, phase: RunPhase) {
@@ -268,14 +299,14 @@ function showFight(run: RunState) {
       passive: run.heroClass.passive,
       wordRng: streamFor(run.seed, 'words', run.fightNumber),
       onWin: (remainingHP, outcome) => {
-        runBestWPM = Math.max(runBestWPM, outcome.wpm);
+        tallyOutcome(outcome);
         recordFightOutcome(outcome, getLocale());
         run.player.hp = remainingHP;
         advance(run);
         afterFightWin(run);
       },
       onLose: (outcome) => {
-        runBestWPM = Math.max(runBestWPM, outcome.wpm);
+        tallyOutcome(outcome);
         recordFightOutcome(outcome, getLocale());
         showRunOver(run, 'lost');
       },
@@ -356,6 +387,19 @@ function showRunOver(run: RunState, result: 'won' | 'lost') {
   const newRunRecord = run.mode === 'classic' && run.defeated > prevBestRun;
   const newWPMRecord = runBestWPM > prevBestWPM;
   const newEndlessRecord = run.mode === 'endless' && run.defeated > prevBestEndless;
+
+  const keystrokes = runAgg.correct + runAgg.mistakes;
+  const minutes = runAgg.elapsedMs / 60000;
+  const seedResult: SeedResult = {
+    depth: run.defeated,
+    bestWPM: runBestWPM,
+    avgWPM: minutes > 0 ? Math.round(runAgg.correct / 5 / minutes) : 0,
+    accuracy: keystrokes > 0 ? runAgg.correct / keystrokes : 1,
+    durationMs: runAgg.elapsedMs,
+    classId: run.heroClass.id,
+  };
+  const newSeedRecord = recordSeedResult(run.seed, seedResult);
+
   show((host) =>
     mountRunOver(host, {
       run,
@@ -364,6 +408,8 @@ function showRunOver(run: RunState, result: 'won' | 'lost') {
       newRunRecord,
       newWPMRecord,
       newEndlessRecord,
+      seedResult,
+      newSeedRecord,
       onRestart: startRun,
     }),
   );

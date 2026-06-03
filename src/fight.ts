@@ -148,6 +148,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
 
   let firstSpawnAt = 0;
   let correctChars = 0;
+  let mistakes = 0;
 
   // Enemy status effects + per-class passive bookkeeping
   let poisonStacks = 0;
@@ -284,6 +285,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
         resolveCompletion();
       }
     } else {
+      mistakes += 1;
       sfxTypo();
       flashTypo();
     }
@@ -532,7 +534,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     const elapsedMs = firstSpawnAt ? performance.now() - firstSpawnAt : 0;
     const minutes = elapsedMs / 60000;
     const wpm = minutes > 0 ? Math.round(correctChars / 5 / minutes) : 0;
-    return { wpm, correctChars, elapsedMs };
+    return { wpm, correctChars, mistakes, elapsedMs };
   }
 
   function endFight(result: 'won' | 'lost') {

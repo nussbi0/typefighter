@@ -1,7 +1,7 @@
 import { getLocale, onLocaleChange, renderTextWithDropCap, t } from './i18n';
 import { RUN_LENGTH } from './enemies';
 import type { RunState } from './state';
-import { bestEndless, bestRun, bestWPM, totals } from './stats';
+import { bestEndless, bestRun, bestWPM, totals, type SeedResult } from './stats';
 
 export interface RunOverProps {
   run: RunState;
@@ -10,18 +10,54 @@ export interface RunOverProps {
   newRunRecord: boolean;
   newWPMRecord: boolean;
   newEndlessRecord: boolean;
+  seedResult: SeedResult;
+  newSeedRecord: boolean;
   onRestart: () => void;
 }
 
+function shareUrl(seed: string, daily: boolean): string {
+  const query = daily ? 'daily=1' : `seed=${encodeURIComponent(seed)}`;
+  return `${location.origin}${location.pathname}?${query}`;
+}
+
+function formatTime(ms: number): string {
+  const total = Math.round(ms / 1000);
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
 export function mountRunOver(host: HTMLElement, props: RunOverProps): () => void {
-  const { run, result, runBestWPM, newRunRecord, newWPMRecord, newEndlessRecord, onRestart } =
-    props;
+  const {
+    run,
+    result,
+    runBestWPM,
+    newRunRecord,
+    newWPMRecord,
+    newEndlessRecord,
+    seedResult,
+    newSeedRecord,
+    onRestart,
+  } = props;
   const endless = run.mode === 'endless';
 
   host.innerHTML = `
     <div class="scene runover" data-result="${result}">
       <h2 class="runover-title with-drop-cap" data-title></h2>
       <p class="runover-count" data-count></p>
+      <div class="runover-seed" data-seedblock hidden>
+        <div class="seed-bar">
+          <span class="seed-text" data-seedtext></span>
+          <button class="seed-share" type="button" data-share data-i18n="seed_share"></button>
+        </div>
+        <dl class="runover-stats">
+          <div class="stat-row"><dt data-i18n="stat_depth"></dt><dd data-sr-depth></dd></div>
+          <div class="stat-row"><dt data-i18n="stat_best_wpm"></dt><dd data-sr-bestwpm></dd></div>
+          <div class="stat-row"><dt data-i18n="stat_avg_wpm"></dt><dd data-sr-avgwpm></dd></div>
+          <div class="stat-row"><dt data-i18n="stat_accuracy"></dt><dd data-sr-acc></dd></div>
+          <div class="stat-row"><dt data-i18n="stat_time"></dt><dd data-sr-time></dd></div>
+        </dl>
+      </div>
       <dl class="runover-stats">
         <div class="stat-row">
           <dt data-i18n="stat_best_fight"></dt>
@@ -52,6 +88,14 @@ export function mountRunOver(host: HTMLElement, props: RunOverProps): () => void
   const longestRunEl = root.querySelector('[data-longest-run]') as HTMLElement;
   const longestLabelEl = root.querySelector('[data-longest-label]') as HTMLElement;
   const runsTotalEl = root.querySelector('[data-runs-total]') as HTMLElement;
+  const seedBlock = root.querySelector('[data-seedblock]') as HTMLElement;
+  const seedTextEl = root.querySelector('[data-seedtext]') as HTMLElement;
+  const shareBtn = root.querySelector('[data-share]') as HTMLButtonElement;
+  const srDepthEl = root.querySelector('[data-sr-depth]') as HTMLElement;
+  const srBestWpmEl = root.querySelector('[data-sr-bestwpm]') as HTMLElement;
+  const srAvgWpmEl = root.querySelector('[data-sr-avgwpm]') as HTMLElement;
+  const srAccEl = root.querySelector('[data-sr-acc]') as HTMLElement;
+  const srTimeEl = root.querySelector('[data-sr-time]') as HTMLElement;
   const btn = root.querySelector('.runover-button') as HTMLButtonElement;
 
   function renderStatValue(el: HTMLElement, text: string, isNewRecord: boolean) {
@@ -90,9 +134,37 @@ export function mountRunOver(host: HTMLElement, props: RunOverProps): () => void
     }
     const tot = totals();
     runsTotalEl.textContent = `${tot.runs} (${tot.clears})`;
+
+    if (endless && run.seed) {
+      seedBlock.hidden = false;
+      seedTextEl.textContent = run.daily
+        ? t('seed_daily', { seed: run.seed })
+        : t('seed_label', { seed: run.seed });
+      renderStatValue(srDepthEl, String(seedResult.depth), newSeedRecord);
+      srBestWpmEl.textContent = t('stat_wpm_unit', { wpm: seedResult.bestWPM });
+      srAvgWpmEl.textContent = t('stat_wpm_unit', { wpm: seedResult.avgWPM });
+      srAccEl.textContent = `${Math.round(seedResult.accuracy * 100)}%`;
+      srTimeEl.textContent = formatTime(seedResult.durationMs);
+    } else {
+      seedBlock.hidden = true;
+    }
+  }
+
+  function share() {
+    if (!navigator.clipboard) return;
+    navigator.clipboard
+      .writeText(shareUrl(run.seed, run.daily))
+      .then(() => {
+        shareBtn.textContent = t('seed_copied');
+        setTimeout(() => {
+          shareBtn.textContent = t('seed_share');
+        }, 1500);
+      })
+      .catch(() => {});
   }
 
   function onKey(e: KeyboardEvent) {
+    if (e.target === shareBtn) return;
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       onRestart();
@@ -102,6 +174,7 @@ export function mountRunOver(host: HTMLElement, props: RunOverProps): () => void
   applyAll();
   const offLocale = onLocaleChange(applyAll);
   btn.addEventListener('click', onRestart);
+  shareBtn.addEventListener('click', share);
   document.addEventListener('keydown', onKey);
   btn.focus();
 
