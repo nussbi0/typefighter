@@ -55,7 +55,9 @@ function bindLangSwitcher() {
   const sync = () => {
     const current = getLocale();
     buttons.forEach((b) => {
-      b.classList.toggle('active', b.dataset.locale === current);
+      const active = b.dataset.locale === current;
+      b.classList.toggle('active', active);
+      b.setAttribute('aria-pressed', String(active));
     });
   };
   buttons.forEach((b) => {

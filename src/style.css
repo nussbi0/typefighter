@@ -69,12 +69,40 @@ html, body {
   100% { transform: translate(var(--sway, 30px), -104vh); opacity: 0; }
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .embers { display: none; }
   #scene.shaking { animation: none; }
   .fight, .scene { animation: none; }
   .particle { display: none; }
   .avatar.defeated { animation: none; opacity: 0; }
+  .avatar.hit,
+  .avatar.cast,
+  .enemy-avatar.enraged,
+  .word.typo,
+  .record-badge,
+  .phase-banner { animation: none; }
+  .damage,
+  .damage.crit,
+  .heal { animation: damage-fade 1000ms ease forwards; }
+  .hp-fill { transition: none; }
+}
+
+@keyframes damage-fade {
+  0% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 .topbar {

@@ -1,5 +1,6 @@
 import { t, randomWord, onLocaleChange, renderTextWithDropCap } from './i18n';
 import { sfxEnrage, sfxHurt, sfxLose, sfxStrike, sfxType, sfxTypo, sfxWin } from './audio';
+import { announce } from './a11y';
 import type { Enemy } from './enemies';
 import type { PlayerStats } from './state';
 import type { FightOutcome } from './stats';
@@ -422,6 +423,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     if (ratio > enemy.phaseChange.triggerHPRatio) return;
     phaseTriggered = true;
     sfxEnrage();
+    announce(`${t(enemy.nameKey)} — ${t('enraged')}`);
     currentMsPerChar = enemy.phaseChange.msPerChar;
     currentSpawnDelay = enemy.phaseChange.spawnDelayMs;
     currentComboChance = enemy.phaseChange.comboChance;
@@ -445,6 +447,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     state.status = result;
     if (result === 'won') sfxWin();
     else sfxLose();
+    announce(result === 'won' ? t('victory') : t('defeat'));
     els.word.classList.remove('active', 'combo');
     renderTextWithDropCap(els.banner, result === 'won' ? t('victory') : t('defeat'));
     els.banner.dataset.state = result;
@@ -460,6 +463,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
 
   applyI18n();
   renderHP();
+  announce(`${t(enemy.nameKey)} — ${t('you')} ${state.playerHP}/${player.maxHP}, ${t(enemy.nameKey)} ${state.enemyHP}/${enemy.maxHP}`);
   document.addEventListener('keydown', onKeyDown);
   scheduleSpawn(500);
   loop();
