@@ -14,6 +14,8 @@ import { mountRunOver } from './runover';
 import { mountBranch } from './branch';
 import { mountClassSelect } from './classselect';
 import { mountModeSelect } from './modeselect';
+import { mountResumePrompt } from './resumeprompt';
+import { clearRun, loadRun, saveRun, type RunPhase, type SavedRun } from './runstore';
 import type { HeroClass } from './classes';
 import {
   advance,
@@ -212,8 +214,13 @@ function beginRun(heroClass: HeroClass, mode: RunMode) {
   showEncounter(run);
 }
 
+function persist(run: RunState, phase: RunPhase) {
+  saveRun({ phase, run, runBestWPM });
+}
+
 function showEncounter(run: RunState) {
   const applied = applyPending(run);
+  persist(run, 'encounter');
   show((host) =>
     mountEncounter(host, {
       enemy: run.upcomingEnemy,
@@ -259,6 +266,7 @@ function afterFightWin(run: RunState) {
 }
 
 function showLevelUp(run: RunState) {
+  persist(run, 'levelup');
   show((host) =>
     mountLevelUp(host, {
       player: run.player,
@@ -277,8 +285,14 @@ function afterLevelUp(run: RunState) {
     showEncounter(run);
     return;
   }
+  enterBranch(run);
+}
+
+function enterBranch(run: RunState) {
+  const nextFightNumber = run.fightNumber + 1;
   const candidates =
     run.mode === 'endless' ? endlessCandidates(nextFightNumber) : enemiesByTier(nextFightNumber);
+  persist(run, 'branch');
   showBranch(run, nextFightNumber, candidates);
 }
 
@@ -298,6 +312,7 @@ function showBranch(run: RunState, nextFightNumber: number, candidates: Enemy[])
 }
 
 function showRunOver(run: RunState, result: 'won' | 'lost') {
+  clearRun();
   const locale = getLocale();
   const prevBestRun = bestRun(locale);
   const prevBestWPM = bestWPM(locale);
@@ -323,7 +338,33 @@ function showRunOver(run: RunState, result: 'won' | 'lost') {
   );
 }
 
-startRun();
+function resumeRun(saved: SavedRun) {
+  runBestWPM = saved.runBestWPM;
+  const { run } = saved;
+  if (saved.phase === 'levelup') showLevelUp(run);
+  else if (saved.phase === 'branch') enterBranch(run);
+  else showEncounter(run);
+}
+
+function showResumePrompt(saved: SavedRun) {
+  show((host) =>
+    mountResumePrompt(host, {
+      run: saved.run,
+      onResume: () => resumeRun(saved),
+      onNew: () => {
+        clearRun();
+        startRun();
+      },
+    })
+  );
+}
+
+const savedRun = loadRun();
+if (savedRun) {
+  showResumePrompt(savedRun);
+} else {
+  startRun();
+}
 
 if (!hasSeenIntro()) {
   (document.getElementById('howto-modal') as HTMLDialogElement).showModal();

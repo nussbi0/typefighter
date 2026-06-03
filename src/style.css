@@ -1448,6 +1448,15 @@ html, body {
   margin: 8px auto 0;
 }
 
+.resume-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 12px;
+}
+
 .branch-card,
 .class-card {
   position: relative;

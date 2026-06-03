@@ -63,6 +63,10 @@ const messages: Record<Locale, Messages> = {
     encounter_appears: 'A wild {enemy} approaches.',
     encounter_begin: 'Begin combat',
 
+    resume_title: 'Continue your run?',
+    resume_continue: 'Resume',
+    resume_new: 'New run',
+
     mode_title: 'Choose your trial',
     mode_subtitle: 'How far will your typing carry you?',
     mode_classic: 'Classic',
@@ -190,6 +194,10 @@ const messages: Record<Locale, Messages> = {
     encounter_boss: 'Ein finsterer Feind versperrt deinen Weg.',
     encounter_appears: 'Ein wilder {enemy} naht.',
     encounter_begin: 'Kampf beginnen',
+
+    resume_title: 'Lauf fortsetzen?',
+    resume_continue: 'Fortsetzen',
+    resume_new: 'Neuer Lauf',
 
     mode_title: 'Wähle deine Prüfung',
     mode_subtitle: 'Wie weit trägt dich dein Tippen?',
