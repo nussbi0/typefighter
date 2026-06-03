@@ -4,7 +4,9 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently -k -n web,api -c cyan,magenta \"npm:dev:web\" \"npm:dev:api\"",
+    "dev:web": "vite",
+    "dev:api": "wrangler dev",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint .",
@@ -13,7 +15,6 @@
     "typecheck:worker": "tsc -p worker/tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "dev:api": "wrangler dev",
     "db:migrate:local": "wrangler d1 migrations apply typefighter --local",
     "db:migrate": "wrangler d1 migrations apply typefighter --remote",
     "deploy": "npm run build && wrangler deploy"
@@ -21,6 +22,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260603.1",
     "@eslint/js": "^9.39.4",
+    "concurrently": "^10.0.3",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.6.0",
