@@ -18,5 +18,13 @@ export default tseslint.config(
       globals: { ...globals.node },
     },
   },
+  {
+    // Cloudflare Worker code runs in the Workers runtime (service-worker-like
+    // globals plus Date/crypto/Response/URL).
+    files: ['worker/**/*.ts'],
+    languageOptions: {
+      globals: { ...globals.serviceworker, ...globals.browser },
+    },
+  },
   prettier,
 );
