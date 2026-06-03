@@ -44,6 +44,7 @@ import {
 import { endlessCandidates, enemiesByTier, findEnemy, RUN_LENGTH, type Enemy } from './enemies';
 import { initAudioPrefs, isMuted, setMuted, sfxType } from './audio';
 import { dailySeed, randomSeed, streamFor } from './rng';
+import { fetchLeaderboard, type LeaderboardData } from './leaderboard';
 
 function applyStaticI18n() {
   document.querySelectorAll<HTMLElement>('[data-i18n]').forEach((el) => {
@@ -141,6 +142,61 @@ function bindStatsModal() {
   });
 }
 
+function escapeHtml(s: string): string {
+  return s.replace(
+    /[&<>"']/g,
+    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] ?? c,
+  );
+}
+
+function renderLeaderboard(content: HTMLElement, data: LeaderboardData | null) {
+  if (!data) {
+    content.innerHTML = `<p class="lb-status">${t('leaderboard_error')}</p>`;
+    return;
+  }
+  if (data.top.length === 0) {
+    content.innerHTML = `<p class="lb-status">${t('leaderboard_empty')}</p>`;
+    return;
+  }
+  const rows = data.top
+    .map(
+      (e) =>
+        `<div class="lb-row${e.you ? ' lb-you' : ''}"><span class="lb-rank">${e.rank}</span><span class="lb-name">${escapeHtml(e.name)}</span><span class="lb-depth">${e.depth}</span><span class="lb-wpm">${e.bestWPM}</span></div>`,
+    )
+    .join('');
+  const youOutside =
+    data.you && !data.top.some((e) => e.you)
+      ? `<p class="lb-status">${t('leaderboard_your_rank', { n: data.you.rank, total: data.you.total })}</p>`
+      : '';
+  content.innerHTML = `
+    <div class="lb-head">
+      <span class="lb-rank">#</span><span class="lb-name" data-i18n="lb_col_name"></span><span class="lb-depth" data-i18n="lb_col_depth"></span><span class="lb-wpm" data-i18n="lb_col_wpm"></span>
+    </div>
+    <div class="lb-table">${rows}</div>${youOutside}`;
+  content.querySelectorAll<HTMLElement>('[data-i18n]').forEach((el) => {
+    el.textContent = t(el.dataset.i18n!);
+  });
+}
+
+async function openLeaderboard(day: string) {
+  const dlg = document.getElementById('leaderboard-modal') as HTMLDialogElement;
+  const content = document.getElementById('leaderboard-content')!;
+  content.innerHTML = `<p class="lb-status">${t('leaderboard_loading')}</p>`;
+  if (!dlg.open) dlg.showModal();
+  renderLeaderboard(content, await fetchLeaderboard(day));
+}
+
+function bindLeaderboardModal() {
+  const btn = document.getElementById('leaderboard-button')!;
+  const dlg = document.getElementById('leaderboard-modal') as HTMLDialogElement;
+  const card = dlg.querySelector('.modal-card') as HTMLElement;
+  const closeBtn = dlg.querySelector('[data-lb-close]') as HTMLButtonElement;
+  btn.addEventListener('click', () => openLeaderboard(dailySeed(new Date())));
+  closeBtn.addEventListener('click', () => dlg.close());
+  card.addEventListener('click', (e) => e.stopPropagation());
+  dlg.addEventListener('click', () => dlg.close());
+}
+
 const INTRO_KEY = 'typefighter.seenIntro.v1';
 
 function hasSeenIntro(): boolean {
@@ -210,6 +266,7 @@ applyStaticI18n();
 bindLangSwitcher();
 bindStatsModal();
 bindHowToModal();
+bindLeaderboardModal();
 bindSoundToggle();
 spawnEmbers(20);
 
@@ -410,6 +467,7 @@ function showRunOver(run: RunState, result: 'won' | 'lost') {
       newEndlessRecord,
       seedResult,
       newSeedRecord,
+      onOpenLeaderboard: openLeaderboard,
       onRestart: startRun,
     }),
   );

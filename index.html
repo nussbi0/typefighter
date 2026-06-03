@@ -34,6 +34,12 @@
           ></button>
           <button
             class="stats-button"
+            id="leaderboard-button"
+            type="button"
+            data-i18n="leaderboard_button"
+          ></button>
+          <button
+            class="stats-button"
             id="sound-button"
             type="button"
             aria-pressed="false"
@@ -93,6 +99,26 @@
         <h2 id="stats-modal-title" class="modal-title with-drop-cap" data-i18n="stats_title"></h2>
         <div id="stats-content" class="stats-content"></div>
         <button class="modal-close begin-fight" type="button" data-i18n="stats_close"></button>
+      </div>
+    </dialog>
+    <dialog id="leaderboard-modal" class="stats-modal" aria-labelledby="leaderboard-modal-title">
+      <div class="modal-card">
+        <span class="corner corner-tl" aria-hidden="true"></span>
+        <span class="corner corner-tr" aria-hidden="true"></span>
+        <span class="corner corner-bl" aria-hidden="true"></span>
+        <span class="corner corner-br" aria-hidden="true"></span>
+        <h2
+          id="leaderboard-modal-title"
+          class="modal-title with-drop-cap"
+          data-i18n="leaderboard_title"
+        ></h2>
+        <div id="leaderboard-content" class="stats-content"></div>
+        <button
+          class="modal-close begin-fight"
+          type="button"
+          data-i18n="stats_close"
+          data-lb-close
+        ></button>
       </div>
     </dialog>
     <script type="module" src="/src/main.ts"></script>

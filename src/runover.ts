@@ -2,6 +2,7 @@ import { getLocale, onLocaleChange, renderTextWithDropCap, t } from './i18n';
 import { RUN_LENGTH } from './enemies';
 import type { RunState } from './state';
 import { bestEndless, bestRun, bestWPM, totals, type SeedResult } from './stats';
+import { getPlayerName, setPlayerName, submitScore } from './leaderboard';
 
 export interface RunOverProps {
   run: RunState;
@@ -12,6 +13,7 @@ export interface RunOverProps {
   newEndlessRecord: boolean;
   seedResult: SeedResult;
   newSeedRecord: boolean;
+  onOpenLeaderboard: (day: string) => void;
   onRestart: () => void;
 }
 
@@ -37,6 +39,7 @@ export function mountRunOver(host: HTMLElement, props: RunOverProps): () => void
     newEndlessRecord,
     seedResult,
     newSeedRecord,
+    onOpenLeaderboard,
     onRestart,
   } = props;
   const endless = run.mode === 'endless';
@@ -57,6 +60,14 @@ export function mountRunOver(host: HTMLElement, props: RunOverProps): () => void
           <div class="stat-row"><dt data-i18n="stat_accuracy"></dt><dd data-sr-acc></dd></div>
           <div class="stat-row"><dt data-i18n="stat_time"></dt><dd data-sr-time></dd></div>
         </dl>
+        <div class="lb-submit" data-lbsubmit hidden>
+          <button class="seed-share" type="button" data-lbsubmit-btn data-i18n="leaderboard_submit"></button>
+          <div class="lb-name-row" data-lbnamerow hidden>
+            <input class="seed-input lb-name-input" type="text" maxlength="20" autocomplete="off" data-lbname />
+            <button class="seed-share" type="button" data-lbname-ok data-i18n="leaderboard_name_confirm"></button>
+          </div>
+          <div class="lb-result" data-lbresult></div>
+        </div>
       </div>
       <dl class="runover-stats">
         <div class="stat-row">
@@ -96,6 +107,12 @@ export function mountRunOver(host: HTMLElement, props: RunOverProps): () => void
   const srAvgWpmEl = root.querySelector('[data-sr-avgwpm]') as HTMLElement;
   const srAccEl = root.querySelector('[data-sr-acc]') as HTMLElement;
   const srTimeEl = root.querySelector('[data-sr-time]') as HTMLElement;
+  const lbSubmit = root.querySelector('[data-lbsubmit]') as HTMLElement;
+  const lbSubmitBtn = root.querySelector('[data-lbsubmit-btn]') as HTMLButtonElement;
+  const lbNameRow = root.querySelector('[data-lbnamerow]') as HTMLElement;
+  const lbNameInput = root.querySelector('[data-lbname]') as HTMLInputElement;
+  const lbNameOk = root.querySelector('[data-lbname-ok]') as HTMLButtonElement;
+  const lbResult = root.querySelector('[data-lbresult]') as HTMLElement;
   const btn = root.querySelector('.runover-button') as HTMLButtonElement;
 
   function renderStatValue(el: HTMLElement, text: string, isNewRecord: boolean) {
@@ -148,6 +165,53 @@ export function mountRunOver(host: HTMLElement, props: RunOverProps): () => void
     } else {
       seedBlock.hidden = true;
     }
+    lbSubmit.hidden = !run.daily;
+    lbNameInput.placeholder = t('leaderboard_name_placeholder');
+  }
+
+  let submitting = false;
+  let submitted = false;
+
+  function doSubmit(name: string) {
+    if (submitting || submitted) return;
+    submitting = true;
+    lbSubmitBtn.disabled = true;
+    lbResult.textContent = t('leaderboard_submitting');
+    submitScore(run.seed, name, seedResult).then((res) => {
+      submitting = false;
+      if (!res) {
+        lbSubmitBtn.disabled = false;
+        lbResult.textContent = t('leaderboard_error');
+        return;
+      }
+      submitted = true;
+      lbSubmitBtn.hidden = true;
+      lbResult.textContent = `${t('leaderboard_rank', { n: res.rank, total: res.total })} `;
+      const viewBtn = document.createElement('button');
+      viewBtn.className = 'seed-share';
+      viewBtn.type = 'button';
+      viewBtn.textContent = t('leaderboard_view');
+      viewBtn.addEventListener('click', () => onOpenLeaderboard(run.seed));
+      lbResult.append(viewBtn);
+    });
+  }
+
+  function onSubmitClick() {
+    const name = getPlayerName();
+    if (!name) {
+      lbNameRow.hidden = false;
+      lbNameInput.focus();
+    } else {
+      doSubmit(name);
+    }
+  }
+
+  function confirmName() {
+    const name = lbNameInput.value.trim();
+    if (!name) return;
+    setPlayerName(name);
+    lbNameRow.hidden = true;
+    doSubmit(name);
   }
 
   function share() {
@@ -164,10 +228,17 @@ export function mountRunOver(host: HTMLElement, props: RunOverProps): () => void
   }
 
   function onKey(e: KeyboardEvent) {
-    if (e.target === shareBtn) return;
+    if (e.target === shareBtn || lbSubmit.contains(e.target as Node)) return;
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       onRestart();
+    }
+  }
+
+  function onNameKey(e: KeyboardEvent) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      confirmName();
     }
   }
 
@@ -175,6 +246,9 @@ export function mountRunOver(host: HTMLElement, props: RunOverProps): () => void
   const offLocale = onLocaleChange(applyAll);
   btn.addEventListener('click', onRestart);
   shareBtn.addEventListener('click', share);
+  lbSubmitBtn.addEventListener('click', onSubmitClick);
+  lbNameOk.addEventListener('click', confirmName);
+  lbNameInput.addEventListener('keydown', onNameKey);
   document.addEventListener('keydown', onKey);
   btn.focus();
 
