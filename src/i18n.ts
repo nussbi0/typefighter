@@ -101,6 +101,9 @@ const messages: Record<Locale, Messages> = {
     stats_title: 'Annals',
     stats_close: 'Close',
 
+    sound_on: '🔊 Sound',
+    sound_off: '🔇 Muted',
+
     howto_button: 'Guide',
     howto_tagline: 'A typing-fueled RPG duel.',
     howto_premise: 'Battle five foes as a hero of your choosing. Type each incoming word before it reaches you — the sooner you finish, the harder you strike.',
@@ -225,6 +228,9 @@ const messages: Record<Locale, Messages> = {
     stats_button: 'Chronik',
     stats_title: 'Chronik',
     stats_close: 'Schließen',
+
+    sound_on: '🔊 Ton',
+    sound_off: '🔇 Stumm',
 
     howto_button: 'Anleitung',
     howto_tagline: 'Ein tippgetriebenes RPG-Duell.',

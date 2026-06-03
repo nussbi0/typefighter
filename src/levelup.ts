@@ -1,4 +1,5 @@
 import { t, onLocaleChange, renderTextWithDropCap } from './i18n';
+import { sfxBoon } from './audio';
 import { combatStatLines, drawBoons, type PlayerStats, type Upgrade } from './state';
 
 export interface LevelUpProps {
@@ -88,6 +89,7 @@ export function mountLevelUp(host: HTMLElement, props: LevelUpProps): () => void
   function pick(up: Upgrade) {
     if (resolved) return;
     resolved = true;
+    sfxBoon();
     up.apply(player);
     onChosen();
   }

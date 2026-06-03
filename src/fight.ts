@@ -1,4 +1,5 @@
 import { t, randomWord, onLocaleChange, renderTextWithDropCap } from './i18n';
+import { sfxEnrage, sfxHurt, sfxLose, sfxStrike, sfxType, sfxTypo, sfxWin } from './audio';
 import type { Enemy } from './enemies';
 import type { PlayerStats } from './state';
 import type { FightOutcome } from './stats';
@@ -9,7 +10,7 @@ const MIN_DURATION_MS = 1500;
 const TIER_PERFECT_MAX = 0.32;
 const TIER_GREAT_MAX = 0.62;
 
-type Tier = 'perfect' | 'great' | 'good';
+export type Tier = 'perfect' | 'great' | 'good';
 
 const TIER_MULT: Record<Tier, number> = {
   perfect: 1.5,
@@ -244,11 +245,13 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     if (keyLower === expectedLower) {
       state.typed += expected;
       correctChars += 1;
+      sfxType();
       renderWord();
       if (state.typed.length === state.word.length) {
         resolveCompletion();
       }
     } else {
+      sfxTypo();
       flashTypo();
     }
   }
@@ -270,6 +273,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     if (crit) dmg *= 2;
     const wasCombo = state.wordCount > 1;
     state.enemyHP = Math.max(0, state.enemyHP - dmg);
+    sfxStrike(tier, crit);
     showHit('enemy', dmg, tier, crit);
     hitFlash(els.enemyAvatar);
     applyHeal(Math.round(dmg * player.lifesteal) + player.regen);
@@ -331,6 +335,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     const raw = Math.round(enemy.hitDamage * dmgMult);
     const dmg = Math.max(1, raw - player.defense);
     state.playerHP = Math.max(0, state.playerHP - dmg);
+    sfxHurt();
     showHit('player', dmg);
     hitFlash(els.playerAvatar);
     spawnBurst(els.playerAvatar, 'ember', 7);
@@ -416,6 +421,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     const ratio = state.enemyHP / enemy.maxHP;
     if (ratio > enemy.phaseChange.triggerHPRatio) return;
     phaseTriggered = true;
+    sfxEnrage();
     currentMsPerChar = enemy.phaseChange.msPerChar;
     currentSpawnDelay = enemy.phaseChange.spawnDelayMs;
     currentComboChance = enemy.phaseChange.comboChance;
@@ -437,6 +443,8 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   function endFight(result: 'won' | 'lost') {
     if (resolved) return;
     state.status = result;
+    if (result === 'won') sfxWin();
+    else sfxLose();
     els.word.classList.remove('active', 'combo');
     renderTextWithDropCap(els.banner, result === 'won' ? t('victory') : t('defeat'));
     els.banner.dataset.state = result;

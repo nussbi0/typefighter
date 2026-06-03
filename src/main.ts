@@ -35,6 +35,7 @@ import {
   totals,
 } from './stats';
 import { endlessCandidates, enemiesByTier, findEnemy, RUN_LENGTH, type Enemy } from './enemies';
+import { initAudioPrefs, isMuted, setMuted, sfxType } from './audio';
 
 function applyStaticI18n() {
   document.querySelectorAll<HTMLElement>('[data-i18n]').forEach((el) => {
@@ -141,6 +142,21 @@ function bindHowToModal() {
   dlg.addEventListener('click', () => dlg.close());
 }
 
+function bindSoundToggle() {
+  const btn = document.getElementById('sound-button')!;
+  const sync = () => {
+    btn.textContent = t(isMuted() ? 'sound_off' : 'sound_on');
+    btn.setAttribute('aria-pressed', String(!isMuted()));
+  };
+  btn.addEventListener('click', () => {
+    setMuted(!isMuted());
+    if (!isMuted()) sfxType(); // confirmation blip when (re)enabling
+    sync();
+  });
+  onLocaleChange(sync);
+  sync();
+}
+
 function spawnEmbers(count: number) {
   const layer = document.createElement('div');
   layer.className = 'embers';
@@ -160,11 +176,13 @@ function spawnEmbers(count: number) {
   document.body.prepend(layer);
 }
 
+initAudioPrefs();
 onLocaleChange(applyStaticI18n);
 applyStaticI18n();
 bindLangSwitcher();
 bindStatsModal();
 bindHowToModal();
+bindSoundToggle();
 spawnEmbers(20);
 
 const scene = document.getElementById('scene')!;
