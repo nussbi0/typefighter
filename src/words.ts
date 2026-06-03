@@ -4,6 +4,7 @@ import { getLocale, type Locale } from './i18n';
 // longer/rarer). The fight requests a word at a difficulty level derived from
 // the foe's tier (Classic) or endless depth, so combat gets harder to *type*,
 // not just tankier.
+// prettier-ignore
 const bands: Record<Locale, string[][]> = {
   en: [
     // band 0 — 3-4 letters
