@@ -75,11 +75,15 @@ export interface CombatStatLine {
 export function combatStatLines(p: PlayerStats): CombatStatLine[] {
   const lines: CombatStatLine[] = [];
   if (p.defense > 0) lines.push({ key: 'stat_def', value: String(p.defense) });
-  if (p.critChance > 0) lines.push({ key: 'stat_crit', value: `${Math.round(p.critChance * 100)}%` });
+  if (p.critChance > 0)
+    lines.push({ key: 'stat_crit', value: `${Math.round(p.critChance * 100)}%` });
   if (p.critMult > 2) lines.push({ key: 'stat_critdmg', value: `${p.critMult.toFixed(1)}×` });
-  if (p.lifesteal > 0) lines.push({ key: 'stat_lifesteal', value: `${Math.round(p.lifesteal * 100)}%` });
-  if (p.comboBonus > 0) lines.push({ key: 'stat_combo', value: `+${Math.round(p.comboBonus * 100)}%` });
-  if (p.timeFactor > 1) lines.push({ key: 'stat_focus', value: `+${Math.round((p.timeFactor - 1) * 100)}%` });
+  if (p.lifesteal > 0)
+    lines.push({ key: 'stat_lifesteal', value: `${Math.round(p.lifesteal * 100)}%` });
+  if (p.comboBonus > 0)
+    lines.push({ key: 'stat_combo', value: `+${Math.round(p.comboBonus * 100)}%` });
+  if (p.timeFactor > 1)
+    lines.push({ key: 'stat_focus', value: `+${Math.round((p.timeFactor - 1) * 100)}%` });
   if (p.regen > 0) lines.push({ key: 'stat_regen', value: `+${p.regen}` });
   return lines;
 }

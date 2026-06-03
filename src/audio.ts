@@ -36,7 +36,9 @@ function audio(): AudioContext | null {
   if (muted) return null;
   if (!ctx) {
     try {
-      const Ctor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const Ctor =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       ctx = new Ctor();
       master = ctx.createGain();
       master.gain.value = 0.5;
@@ -133,12 +135,16 @@ export function sfxEnrage(): void {
 
 export function sfxWin(): void {
   const notes = [523, 659, 784, 1047];
-  notes.forEach((f, i) => tone({ freq: f, dur: 0.3, type: 'triangle', gain: 0.22, delay: i * 0.1 }));
+  notes.forEach((f, i) =>
+    tone({ freq: f, dur: 0.3, type: 'triangle', gain: 0.22, delay: i * 0.1 }),
+  );
 }
 
 export function sfxLose(): void {
   const notes = [392, 330, 262, 196];
-  notes.forEach((f, i) => tone({ freq: f, dur: 0.34, type: 'sawtooth', gain: 0.18, delay: i * 0.12 }));
+  notes.forEach((f, i) =>
+    tone({ freq: f, dur: 0.34, type: 'sawtooth', gain: 0.18, delay: i * 0.12 }),
+  );
 }
 
 export function sfxBoon(): void {

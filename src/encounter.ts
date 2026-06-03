@@ -6,7 +6,7 @@ function abilityTagsHTML(enemy: Enemy): string {
   return enemyAbilities(enemy)
     .map(
       (a) =>
-        `<span class="ability-tag" title="${t(a.tip)}">${t(a.key, a.value != null ? { n: a.value } : undefined)}</span>`
+        `<span class="ability-tag" title="${t(a.tip)}">${t(a.key, a.value != null ? { n: a.value } : undefined)}</span>`,
     )
     .join('');
 }
@@ -23,7 +23,16 @@ export interface EncounterProps {
 }
 
 export function mountEncounter(host: HTMLElement, props: EncounterProps): () => void {
-  const { enemy, player, playerSprite, encounterNumber, endless = false, appliedHeal = 0, appliedMaxHP = 0, onStart } = props;
+  const {
+    enemy,
+    player,
+    playerSprite,
+    encounterNumber,
+    endless = false,
+    appliedHeal = 0,
+    appliedMaxHP = 0,
+    onStart,
+  } = props;
 
   host.innerHTML = `
     <div class="scene encounter">
@@ -63,7 +72,10 @@ export function mountEncounter(host: HTMLElement, props: EncounterProps): () => 
             <div class="stat-row"><dt data-i18n="stat_atk"></dt><dd>${formatAtk(player.atkMult)}</dd></div>
             <div class="stat-row"><dt data-i18n="stat_level"></dt><dd>${player.level}</dd></div>
             ${combatStatLines(player)
-              .map((s) => `<div class="stat-row"><dt data-i18n="${s.key}"></dt><dd>${s.value}</dd></div>`)
+              .map(
+                (s) =>
+                  `<div class="stat-row"><dt data-i18n="${s.key}"></dt><dd>${s.value}</dd></div>`,
+              )
               .join('')}
           </dl>
         </div>
@@ -93,12 +105,16 @@ export function mountEncounter(host: HTMLElement, props: EncounterProps): () => 
     counterEl.textContent = endless
       ? t('encounter_depth', { n: encounterNumber })
       : t('encounter_title', { n: encounterNumber, total: RUN_LENGTH });
-    const flavorText = enemy.isBoss ? t('encounter_boss') : t('encounter_appears', { enemy: t(enemy.nameKey) });
+    const flavorText = enemy.isBoss
+      ? t('encounter_boss')
+      : t('encounter_appears', { enemy: t(enemy.nameKey) });
     renderTextWithDropCap(flavorEl, flavorText);
 
     const chips: string[] = [];
-    if (appliedHeal > 0) chips.push(`<span class="boon-chip">${t('encounter_healed', { n: appliedHeal })}</span>`);
-    if (appliedMaxHP > 0) chips.push(`<span class="boon-chip">${t('encounter_max_boost', { n: appliedMaxHP })}</span>`);
+    if (appliedHeal > 0)
+      chips.push(`<span class="boon-chip">${t('encounter_healed', { n: appliedHeal })}</span>`);
+    if (appliedMaxHP > 0)
+      chips.push(`<span class="boon-chip">${t('encounter_max_boost', { n: appliedMaxHP })}</span>`);
     if (chips.length > 0) {
       boonsEl.innerHTML = chips.join('');
       boonsEl.hidden = false;

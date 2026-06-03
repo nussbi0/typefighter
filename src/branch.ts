@@ -115,7 +115,7 @@ export function mountBranch(host: HTMLElement, props: BranchProps): () => void {
         tags.innerHTML = enemyAbilities(opt.enemy)
           .map(
             (a) =>
-              `<span class="ability-tag" title="${t(a.tip)}">${t(a.key, a.value != null ? { n: a.value } : undefined)}</span>`
+              `<span class="ability-tag" title="${t(a.tip)}">${t(a.key, a.value != null ? { n: a.value } : undefined)}</span>`,
           )
           .join('');
       }

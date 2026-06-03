@@ -22,10 +22,7 @@ export function mountClassSelect(host: HTMLElement, props: ClassSelectProps): ()
 
   classes.forEach((c, i) => {
     const preview = classPreview(c);
-    const stats = [
-      { key: 'stat_hp', value: String(preview.maxHP) },
-      ...combatStatLines(preview),
-    ];
+    const stats = [{ key: 'stat_hp', value: String(preview.maxHP) }, ...combatStatLines(preview)];
     const card = document.createElement('button');
     card.className = 'class-card';
     card.type = 'button';
@@ -42,7 +39,9 @@ export function mountClassSelect(host: HTMLElement, props: ClassSelectProps): ()
       <div class="class-passive" data-i18n="${c.passiveKey}"></div>
       <dl class="stat-list class-stats">
         ${stats
-          .map((s) => `<div class="stat-row"><dt data-i18n="${s.key}"></dt><dd>${s.value}</dd></div>`)
+          .map(
+            (s) => `<div class="stat-row"><dt data-i18n="${s.key}"></dt><dd>${s.value}</dd></div>`,
+          )
           .join('')}
       </dl>
     `;

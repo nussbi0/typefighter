@@ -14,7 +14,8 @@ export interface RunOverProps {
 }
 
 export function mountRunOver(host: HTMLElement, props: RunOverProps): () => void {
-  const { run, result, runBestWPM, newRunRecord, newWPMRecord, newEndlessRecord, onRestart } = props;
+  const { run, result, runBestWPM, newRunRecord, newWPMRecord, newEndlessRecord, onRestart } =
+    props;
   const endless = run.mode === 'endless';
 
   host.innerHTML = `
@@ -68,7 +69,11 @@ export function mountRunOver(host: HTMLElement, props: RunOverProps): () => void
     root.querySelectorAll<HTMLElement>('[data-i18n]').forEach((el) => {
       el.textContent = t(el.dataset.i18n!);
     });
-    const titleKey = endless ? 'runover_endless_over' : result === 'won' ? 'runover_won' : 'runover_lost';
+    const titleKey = endless
+      ? 'runover_endless_over'
+      : result === 'won'
+        ? 'runover_won'
+        : 'runover_lost';
     renderTextWithDropCap(titleEl, t(titleKey));
     countEl.textContent = endless
       ? t('runover_depth', { n: run.defeated })

@@ -40,10 +40,7 @@ export function mountLevelUp(host: HTMLElement, props: LevelUpProps): () => void
     ];
     const all = [...base, ...combatStatLines(player)];
     strip.innerHTML = all
-      .map(
-        (s) =>
-          `<div class="stat-chip"><dt data-i18n="${s.key}"></dt><dd>${s.value}</dd></div>`
-      )
+      .map((s) => `<div class="stat-chip"><dt data-i18n="${s.key}"></dt><dd>${s.value}</dd></div>`)
       .join('');
   }
 

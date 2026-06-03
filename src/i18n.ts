@@ -115,7 +115,8 @@ const messages: Record<Locale, Messages> = {
 
     howto_button: 'Guide',
     howto_tagline: 'A typing-fueled RPG duel.',
-    howto_premise: 'Battle five foes as a hero of your choosing. Type each incoming word before it reaches you — the sooner you finish, the harder you strike.',
+    howto_premise:
+      'Battle five foes as a hero of your choosing. Type each incoming word before it reaches you — the sooner you finish, the harder you strike.',
     howto_p1: 'Type the word racing toward you before it lands a hit.',
     howto_p2: 'Finish early for Perfect or Great strikes — more damage.',
     howto_p3: 'Multi-word combos hit hard, but hurt more if they reach you.',
@@ -140,7 +141,7 @@ const messages: Record<Locale, Messages> = {
     passive_knight: 'Guard — halves the first hit each fight.',
     passive_mage: 'Overload — every 4th strike deals double.',
     passive_rogue: 'Ambush — your opening strike always crits.',
-    passive_templar: 'Consecration — heal 12 HP at each fight\'s start.',
+    passive_templar: "Consecration — heal 12 HP at each fight's start.",
     passive_berserker: 'Bloodlust — more damage the lower your HP.',
     passive_guard: 'Guard',
 
@@ -273,7 +274,8 @@ const messages: Record<Locale, Messages> = {
 
     howto_button: 'Anleitung',
     howto_tagline: 'Ein tippgetriebenes RPG-Duell.',
-    howto_premise: 'Bekämpfe fünf Gegner als Held deiner Wahl. Tippe jedes ankommende Wort, bevor es dich erreicht — je früher du fertig bist, desto härter triffst du.',
+    howto_premise:
+      'Bekämpfe fünf Gegner als Held deiner Wahl. Tippe jedes ankommende Wort, bevor es dich erreicht — je früher du fertig bist, desto härter triffst du.',
     howto_p1: 'Tippe das heranrasende Wort, bevor es einschlägt.',
     howto_p2: 'Früh fertig werden für Perfekt- oder Stark-Treffer — mehr Schaden.',
     howto_p3: 'Mehrwort-Kombos treffen hart, schmerzen aber mehr, wenn sie dich erreichen.',
@@ -373,7 +375,6 @@ export function t(key: string, params?: Params): string {
   }
   return str;
 }
-
 
 export function renderTextWithDropCap(el: HTMLElement, text: string): void {
   el.textContent = '';

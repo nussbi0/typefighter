@@ -231,7 +231,7 @@ function showEncounter(run: RunState) {
       appliedHeal: applied.healed,
       appliedMaxHP: applied.maxBoosted,
       onStart: () => showFight(run),
-    })
+    }),
   );
 }
 
@@ -262,7 +262,7 @@ function showFight(run: RunState) {
         recordFightOutcome(outcome, getLocale());
         showRunOver(run, 'lost');
       },
-    })
+    }),
   );
 }
 
@@ -281,7 +281,7 @@ function showLevelUp(run: RunState) {
       player: run.player,
       favoredBoons: run.heroClass.favoredBoons,
       onChosen: () => afterLevelUp(run),
-    })
+    }),
   );
 }
 
@@ -316,7 +316,7 @@ function showBranch(run: RunState, nextFightNumber: number, candidates: Enemy[])
         applyModifier(run, modifier);
         showEncounter(run);
       },
-    })
+    }),
   );
 }
 
@@ -343,7 +343,7 @@ function showRunOver(run: RunState, result: 'won' | 'lost') {
       newWPMRecord,
       newEndlessRecord,
       onRestart: startRun,
-    })
+    }),
   );
 }
 
@@ -364,7 +364,7 @@ function showResumePrompt(saved: SavedRun) {
         clearRun();
         startRun();
       },
-    })
+    }),
   );
 }
 

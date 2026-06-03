@@ -37,7 +37,7 @@ describe('runstore', () => {
   it('ignores an unknown save version', () => {
     localStorage.setItem(
       KEY,
-      JSON.stringify({ v: 99, phase: 'encounter', run: newRun(knight, 'classic'), runBestWPM: 0 })
+      JSON.stringify({ v: 99, phase: 'encounter', run: newRun(knight, 'classic'), runBestWPM: 0 }),
     );
     expect(loadRun()).toBeNull();
   });

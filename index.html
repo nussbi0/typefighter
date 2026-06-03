@@ -20,17 +20,42 @@
           <h1 class="brand with-drop-cap" data-i18n="title"></h1>
         </div>
         <div class="topbar-actions">
-          <button class="stats-button" id="howto-button" type="button" data-i18n="howto_button"></button>
-          <button class="stats-button" id="stats-button" type="button" data-i18n="stats_button"></button>
-          <button class="stats-button" id="sound-button" type="button" aria-pressed="false"></button>
+          <button
+            class="stats-button"
+            id="howto-button"
+            type="button"
+            data-i18n="howto_button"
+          ></button>
+          <button
+            class="stats-button"
+            id="stats-button"
+            type="button"
+            data-i18n="stats_button"
+          ></button>
+          <button
+            class="stats-button"
+            id="sound-button"
+            type="button"
+            aria-pressed="false"
+          ></button>
           <div class="lang-switcher" role="group" aria-label="Language / Sprache">
-            <button data-locale="en" type="button" aria-label="English" aria-pressed="false">EN</button>
-            <button data-locale="de" type="button" aria-label="Deutsch" aria-pressed="false">DE</button>
+            <button data-locale="en" type="button" aria-label="English" aria-pressed="false">
+              EN
+            </button>
+            <button data-locale="de" type="button" aria-label="Deutsch" aria-pressed="false">
+              DE
+            </button>
           </div>
         </div>
       </header>
       <main id="scene"></main>
-      <div id="sr-announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+      <div
+        id="sr-announcer"
+        class="sr-only"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      ></div>
     </div>
     <dialog id="howto-modal" class="stats-modal howto-modal" aria-labelledby="howto-modal-title">
       <div class="modal-card howto-card">

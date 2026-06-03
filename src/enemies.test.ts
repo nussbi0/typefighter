@@ -83,7 +83,9 @@ describe('enemyAbilities', () => {
   });
 
   it('lists lifesteal for the vampire and nothing for the goblin', () => {
-    expect(enemyAbilities(findEnemy('vampire')).some((l) => l.key === 'ability_lifesteal')).toBe(true);
+    expect(enemyAbilities(findEnemy('vampire')).some((l) => l.key === 'ability_lifesteal')).toBe(
+      true,
+    );
     expect(enemyAbilities(findEnemy('goblin'))).toHaveLength(0);
   });
 });

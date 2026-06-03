@@ -207,7 +207,10 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     state.wordCount = wordCount;
     state.typed = '';
     state.wordSpawnedAt = performance.now();
-    state.wordDuration = Math.max(MIN_DURATION_MS, phrase.length * currentMsPerChar * player.timeFactor);
+    state.wordDuration = Math.max(
+      MIN_DURATION_MS,
+      phrase.length * currentMsPerChar * player.timeFactor,
+    );
     if (firstSpawnAt === 0) firstSpawnAt = state.wordSpawnedAt;
     renderWord();
     els.word.classList.add('active');
@@ -366,7 +369,11 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
         enemyHits();
       }
     }
-    if (state.status === 'fighting' && poisonStacks > 0 && now - lastPoisonTick >= POISON_INTERVAL_MS) {
+    if (
+      state.status === 'fighting' &&
+      poisonStacks > 0 &&
+      now - lastPoisonTick >= POISON_INTERVAL_MS
+    ) {
       lastPoisonTick = now;
       const tick = poisonStacks;
       state.playerHP = Math.max(0, state.playerHP - tick);
@@ -433,7 +440,8 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     node.className = `damage damage-${who}`;
     if (tier && tier !== 'good') node.classList.add(`tier-${tier}`);
     if (crit) node.classList.add('crit');
-    const tierLabel = tier === 'perfect' ? t('tier_perfect') : tier === 'great' ? t('tier_great') : '';
+    const tierLabel =
+      tier === 'perfect' ? t('tier_perfect') : tier === 'great' ? t('tier_great') : '';
     const amountText = crit ? `-${dmg} ✦` : `-${dmg}`;
     if (tierLabel) {
       const label = document.createElement('span');
@@ -540,7 +548,9 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
 
   applyI18n();
   renderHP();
-  announce(`${t(enemy.nameKey)} — ${t('you')} ${state.playerHP}/${player.maxHP}, ${t(enemy.nameKey)} ${state.enemyHP}/${enemy.maxHP}`);
+  announce(
+    `${t(enemy.nameKey)} — ${t('you')} ${state.playerHP}/${player.maxHP}, ${t(enemy.nameKey)} ${state.enemyHP}/${enemy.maxHP}`,
+  );
   document.addEventListener('keydown', onKeyDown);
   scheduleSpawn(500);
   loop();
