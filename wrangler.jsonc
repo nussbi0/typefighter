@@ -6,12 +6,13 @@
     "directory": "./dist",
     "binding": "ASSETS",
   },
-  // Run `wrangler d1 create typefighter` and paste the returned database_id below.
+  // D1 binding for the leaderboard. The database_id is an account-scoped
+  // identifier (not a secret); created via `wrangler d1 create typefighter`.
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "typefighter",
-      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "database_id": "97454df0-d15d-40b0-aa4b-7214646b58b6",
     },
   ],
 }
