@@ -148,6 +148,11 @@ const messages: Record<Locale, Messages> = {
     ability_regen: 'Regen {n}',
     ability_lifesteal: 'Lifesteal',
     ability_poison: 'Poison',
+    ability_armor_tip: 'Armor — blunts the damage you deal.',
+    ability_regen_tip: 'Regen — the foe heals between its attacks.',
+    ability_lifesteal_tip: 'Lifesteal — the foe heals when it strikes you.',
+    ability_poison_tip: 'Poison — its hits leave venom that wounds you over time.',
+    howto_abilities_title: 'Foes & their tricks',
 
     branch_title: 'A crossroads',
     branch_subtitle: 'Two foes lie ahead — choose your trial.',
@@ -301,6 +306,11 @@ const messages: Record<Locale, Messages> = {
     ability_regen: 'Regen {n}',
     ability_lifesteal: 'Lebensraub',
     ability_poison: 'Gift',
+    ability_armor_tip: 'Rüstung — mindert den Schaden, den du verursachst.',
+    ability_regen_tip: 'Regen — der Gegner heilt sich zwischen seinen Angriffen.',
+    ability_lifesteal_tip: 'Lebensraub — der Gegner heilt sich, wenn er dich trifft.',
+    ability_poison_tip: 'Gift — seine Treffer verletzen dich über Zeit weiter.',
+    howto_abilities_title: 'Gegner & ihre Tücken',
 
     branch_title: 'Eine Wegkreuzung',
     branch_subtitle: 'Zwei Feinde stehen bereit — wähle deine Prüfung.',

@@ -300,17 +300,18 @@ export function scaleEnemy(base: Enemy, depth: number): Enemy {
 }
 
 export interface AbilityLine {
-  key: string;
+  key: string; // short tag label (may take a {n} value)
+  tip: string; // i18n key for the full explanation (tooltip + guide)
   value?: number;
 }
 
 // Localizable ability tags for previews (encounter / branch screens).
 export function enemyAbilities(enemy: Enemy): AbilityLine[] {
   const lines: AbilityLine[] = [];
-  if (enemy.armor) lines.push({ key: 'ability_armor', value: enemy.armor });
-  if (enemy.regen) lines.push({ key: 'ability_regen', value: enemy.regen });
-  if (enemy.lifesteal) lines.push({ key: 'ability_lifesteal' });
-  if (enemy.poison) lines.push({ key: 'ability_poison' });
+  if (enemy.armor) lines.push({ key: 'ability_armor', tip: 'ability_armor_tip', value: enemy.armor });
+  if (enemy.regen) lines.push({ key: 'ability_regen', tip: 'ability_regen_tip', value: enemy.regen });
+  if (enemy.lifesteal) lines.push({ key: 'ability_lifesteal', tip: 'ability_lifesteal_tip' });
+  if (enemy.poison) lines.push({ key: 'ability_poison', tip: 'ability_poison_tip' });
   return lines;
 }
 

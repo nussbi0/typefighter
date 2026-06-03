@@ -4,7 +4,10 @@ import { combatStatLines, type PlayerStats } from './state';
 
 function abilityTagsHTML(enemy: Enemy): string {
   return enemyAbilities(enemy)
-    .map((a) => `<span class="ability-tag">${t(a.key, a.value != null ? { n: a.value } : undefined)}</span>`)
+    .map(
+      (a) =>
+        `<span class="ability-tag" title="${t(a.tip)}">${t(a.key, a.value != null ? { n: a.value } : undefined)}</span>`
+    )
     .join('');
 }
 

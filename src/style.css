@@ -211,6 +211,8 @@ html, body {
   border: 0;
   background: transparent;
   color: var(--ink);
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
 }
 
 .stats-modal::backdrop {
@@ -311,6 +313,17 @@ html, body {
   font-style: italic;
   font-size: 18px;
   color: var(--ink-light);
+  text-align: center;
+}
+
+.howto-subtitle {
+  margin: 6px 0 -4px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--crimson);
   text-align: center;
 }
 
