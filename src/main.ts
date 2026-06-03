@@ -13,7 +13,8 @@ import { mountLevelUp } from './levelup';
 import { mountRunOver } from './runover';
 import { mountBranch } from './branch';
 import { mountClassSelect } from './classselect';
-import { mountModeSelect } from './modeselect';
+import { mountModeSelect, type ModeChoice } from './modeselect';
+import { mountCustomSeed } from './customseed';
 import { mountResumePrompt } from './resumeprompt';
 import { clearRun, loadRun, saveRun, type RunPhase, type SavedRun } from './runstore';
 import type { HeroClass } from './classes';
@@ -38,7 +39,7 @@ import {
 } from './stats';
 import { endlessCandidates, enemiesByTier, findEnemy, RUN_LENGTH, type Enemy } from './enemies';
 import { initAudioPrefs, isMuted, setMuted, sfxType } from './audio';
-import { randomSeed, streamFor } from './rng';
+import { dailySeed, randomSeed, streamFor } from './rng';
 
 function applyStaticI18n() {
   document.querySelectorAll<HTMLElement>('[data-i18n]').forEach((el) => {
@@ -201,7 +202,19 @@ function show(mount: (host: HTMLElement) => () => void) {
 }
 
 function startRun() {
-  show((host) => mountModeSelect(host, { onPick: chooseClass }));
+  show((host) => mountModeSelect(host, { onPick: onModeChoice }));
+}
+
+function onModeChoice(choice: ModeChoice) {
+  if (choice === 'custom') {
+    show((host) =>
+      mountCustomSeed(host, { onStart: (seed) => chooseClass('endless', seed, false) }),
+    );
+  } else if (choice === 'daily') {
+    chooseClass('endless', dailySeed(new Date()), true);
+  } else {
+    chooseClass(choice, randomSeed(), false);
+  }
 }
 
 function chooseClass(mode: RunMode, seed: string = randomSeed(), daily = false) {
@@ -229,6 +242,8 @@ function showEncounter(run: RunState) {
       playerSprite: run.heroClass.sprite,
       encounterNumber: run.fightNumber,
       endless: run.mode === 'endless',
+      seed: run.seed,
+      daily: run.daily,
       appliedHeal: applied.healed,
       appliedMaxHP: applied.maxBoosted,
       onStart: () => showFight(run),
@@ -378,8 +393,21 @@ function showResumePrompt(saved: SavedRun) {
   );
 }
 
+function readSharedSeed(): { seed: string; daily: boolean } | null {
+  const params = new URLSearchParams(location.search);
+  const daily = params.has('daily');
+  const seed = params.get('seed');
+  if (!daily && !seed) return null;
+  // Clean the URL so a reload doesn't keep forcing the shared run.
+  history.replaceState(null, '', location.pathname);
+  return { seed: daily ? dailySeed(new Date()) : seed!, daily };
+}
+
+const shared = readSharedSeed();
 const savedRun = loadRun();
-if (savedRun) {
+if (shared) {
+  chooseClass('endless', shared.seed, shared.daily);
+} else if (savedRun) {
   showResumePrompt(savedRun);
 } else {
   startRun();

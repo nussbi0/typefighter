@@ -78,6 +78,21 @@ const messages: Record<Locale, Messages> = {
     mode_classic_desc: 'A focused gauntlet of {total} foes, ending with a boss.',
     mode_endless: 'Endless',
     mode_endless_desc: 'Fight ever-tougher foes until you fall. How deep can you go?',
+    mode_daily: 'Daily',
+    mode_daily_desc:
+      "Today's seeded gauntlet — the same run for everyone. One shared challenge a day.",
+    mode_custom: 'Custom Seed',
+    mode_custom_desc: 'Enter or share a seed to replay an exact run.',
+
+    custom_title: 'Custom seed',
+    custom_subtitle: 'Enter a seed — the same seed always plays the same run.',
+    custom_placeholder: 'Type a seed (or leave blank for random)',
+    custom_start: 'Start run',
+
+    seed_label: 'Seed: {seed}',
+    seed_daily: 'Daily · {seed}',
+    seed_share: 'Share',
+    seed_copied: 'Copied!',
 
     stat_hp: 'HP',
     stat_atk: 'ATK',
@@ -237,6 +252,21 @@ const messages: Record<Locale, Messages> = {
     mode_classic_desc: 'Ein straffer Parcours aus {total} Gegnern mit Boss zum Schluss.',
     mode_endless: 'Endlos',
     mode_endless_desc: 'Kämpfe gegen immer stärkere Gegner, bis du fällst. Wie tief kommst du?',
+    mode_daily: 'Täglich',
+    mode_daily_desc:
+      'Der gesäte Parcours des Tages — für alle derselbe Lauf. Eine geteilte Tagesprüfung.',
+    mode_custom: 'Eigener Code',
+    mode_custom_desc: 'Gib einen Seed-Code ein oder teile ihn, um einen Lauf exakt zu wiederholen.',
+
+    custom_title: 'Eigener Seed',
+    custom_subtitle: 'Gib einen Seed ein — derselbe Seed spielt stets denselben Lauf.',
+    custom_placeholder: 'Seed eingeben (oder leer für zufällig)',
+    custom_start: 'Lauf starten',
+
+    seed_label: 'Seed: {seed}',
+    seed_daily: 'Täglich · {seed}',
+    seed_share: 'Teilen',
+    seed_copied: 'Kopiert!',
 
     stat_hp: 'LP',
     stat_atk: 'ANG',

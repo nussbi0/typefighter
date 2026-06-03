@@ -17,9 +17,16 @@ export interface EncounterProps {
   playerSprite: string;
   encounterNumber: number;
   endless?: boolean;
+  seed?: string;
+  daily?: boolean;
   appliedHeal?: number;
   appliedMaxHP?: number;
   onStart: () => void;
+}
+
+function shareUrl(seed: string, daily: boolean): string {
+  const query = daily ? 'daily=1' : `seed=${encodeURIComponent(seed)}`;
+  return `${location.origin}${location.pathname}?${query}`;
 }
 
 export function mountEncounter(host: HTMLElement, props: EncounterProps): () => void {
@@ -29,6 +36,8 @@ export function mountEncounter(host: HTMLElement, props: EncounterProps): () => 
     playerSprite,
     encounterNumber,
     endless = false,
+    seed = '',
+    daily = false,
     appliedHeal = 0,
     appliedMaxHP = 0,
     onStart,
@@ -40,6 +49,10 @@ export function mountEncounter(host: HTMLElement, props: EncounterProps): () => 
         <div class="encounter-counter" data-counter></div>
         <h2 class="encounter-flavor with-drop-cap" data-flavor></h2>
         <div class="encounter-boons" data-boons hidden></div>
+        <div class="seed-bar" data-seedbar hidden>
+          <span class="seed-text" data-seedtext></span>
+          <button class="seed-share" type="button" data-share data-i18n="seed_share"></button>
+        </div>
       </div>
 
       <div class="preview-grid">
@@ -90,6 +103,9 @@ export function mountEncounter(host: HTMLElement, props: EncounterProps): () => 
   const flavorEl = root.querySelector('[data-flavor]') as HTMLElement;
   const boonsEl = root.querySelector('[data-boons]') as HTMLElement;
   const abilitiesEl = root.querySelector('[data-abilities]') as HTMLElement;
+  const seedBar = root.querySelector('[data-seedbar]') as HTMLElement;
+  const seedText = root.querySelector('[data-seedtext]') as HTMLElement;
+  const shareBtn = root.querySelector('[data-share]') as HTMLButtonElement;
   const beginBtn = root.querySelector('.begin-fight') as HTMLButtonElement;
 
   function applyAll() {
@@ -102,6 +118,12 @@ export function mountEncounter(host: HTMLElement, props: EncounterProps): () => 
       }
     });
     abilitiesEl.innerHTML = abilityTagsHTML(enemy);
+    if (seed) {
+      seedBar.hidden = false;
+      seedText.textContent = daily ? t('seed_daily', { seed }) : t('seed_label', { seed });
+    } else {
+      seedBar.hidden = true;
+    }
     counterEl.textContent = endless
       ? t('encounter_depth', { n: encounterNumber })
       : t('encounter_title', { n: encounterNumber, total: RUN_LENGTH });
@@ -125,15 +147,30 @@ export function mountEncounter(host: HTMLElement, props: EncounterProps): () => 
   }
 
   function onKey(e: KeyboardEvent) {
+    if (e.target === shareBtn) return; // let the share button handle its own keys
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       onStart();
     }
   }
 
+  function share() {
+    if (!navigator.clipboard) return;
+    navigator.clipboard
+      .writeText(shareUrl(seed, daily))
+      .then(() => {
+        shareBtn.textContent = t('seed_copied');
+        setTimeout(() => {
+          shareBtn.textContent = t('seed_share');
+        }, 1500);
+      })
+      .catch(() => {});
+  }
+
   applyAll();
   const offLocale = onLocaleChange(applyAll);
   beginBtn.addEventListener('click', onStart);
+  shareBtn.addEventListener('click', share);
   document.addEventListener('keydown', onKey);
   beginBtn.focus();
 

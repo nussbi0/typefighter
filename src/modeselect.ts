@@ -1,21 +1,24 @@
 import { onLocaleChange, renderTextWithDropCap, t } from './i18n';
 import { RUN_LENGTH } from './enemies';
-import type { RunMode } from './state';
+
+export type ModeChoice = 'classic' | 'endless' | 'daily' | 'custom';
 
 export interface ModeSelectProps {
-  onPick: (mode: RunMode) => void;
+  onPick: (choice: ModeChoice) => void;
 }
 
 interface ModeOption {
-  mode: RunMode;
+  choice: ModeChoice;
   sprite: string;
   nameKey: string;
   descKey: string;
 }
 
 const options: ModeOption[] = [
-  { mode: 'classic', sprite: '⚔️', nameKey: 'mode_classic', descKey: 'mode_classic_desc' },
-  { mode: 'endless', sprite: '♾️', nameKey: 'mode_endless', descKey: 'mode_endless_desc' },
+  { choice: 'classic', sprite: '⚔️', nameKey: 'mode_classic', descKey: 'mode_classic_desc' },
+  { choice: 'endless', sprite: '♾️', nameKey: 'mode_endless', descKey: 'mode_endless_desc' },
+  { choice: 'daily', sprite: '📅', nameKey: 'mode_daily', descKey: 'mode_daily_desc' },
+  { choice: 'custom', sprite: '🎲', nameKey: 'mode_custom', descKey: 'mode_custom_desc' },
 ];
 
 export function mountModeSelect(host: HTMLElement, props: ModeSelectProps): () => void {
@@ -36,7 +39,7 @@ export function mountModeSelect(host: HTMLElement, props: ModeSelectProps): () =
     const card = document.createElement('button');
     card.className = 'class-card mode-card';
     card.type = 'button';
-    card.dataset.mode = opt.mode;
+    card.dataset.mode = opt.choice;
     card.innerHTML = `
       <span class="corner corner-tl"></span>
       <span class="corner corner-tr"></span>
@@ -47,15 +50,15 @@ export function mountModeSelect(host: HTMLElement, props: ModeSelectProps): () =
       <div class="class-name with-drop-cap" data-i18n="${opt.nameKey}"></div>
       <div class="class-desc" data-i18n="${opt.descKey}"></div>
     `;
-    card.addEventListener('click', () => pick(opt.mode));
+    card.addEventListener('click', () => pick(opt.choice));
     grid.appendChild(card);
   });
 
   let resolved = false;
-  function pick(mode: RunMode) {
+  function pick(choice: ModeChoice) {
     if (resolved) return;
     resolved = true;
-    onPick(mode);
+    onPick(choice);
   }
 
   function applyAll() {
@@ -71,10 +74,10 @@ export function mountModeSelect(host: HTMLElement, props: ModeSelectProps): () =
   }
 
   function onKey(e: KeyboardEvent) {
-    const idx = ['1', '2'].indexOf(e.key);
-    if (idx >= 0 && options[idx]) {
+    const idx = Number(e.key) - 1;
+    if (Number.isInteger(idx) && idx >= 0 && options[idx]) {
       e.preventDefault();
-      pick(options[idx].mode);
+      pick(options[idx].choice);
     }
   }
 
