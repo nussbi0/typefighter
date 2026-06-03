@@ -10,7 +10,7 @@ beforeEach(() => localStorage.clear());
 
 describe('runstore', () => {
   it('round-trips a saved run', () => {
-    const run = newRun(knight, 'endless');
+    const run = newRun(knight, 'endless', 'seed-1');
     run.fightNumber = 3;
     run.defeated = 2;
     saveRun({ phase: 'levelup', run, runBestWPM: 42 });
@@ -29,7 +29,7 @@ describe('runstore', () => {
   });
 
   it('clears a saved run', () => {
-    saveRun({ phase: 'encounter', run: newRun(knight, 'classic'), runBestWPM: 0 });
+    saveRun({ phase: 'encounter', run: newRun(knight, 'classic', 'seed-1'), runBestWPM: 0 });
     clearRun();
     expect(loadRun()).toBeNull();
   });
@@ -37,7 +37,12 @@ describe('runstore', () => {
   it('ignores an unknown save version', () => {
     localStorage.setItem(
       KEY,
-      JSON.stringify({ v: 99, phase: 'encounter', run: newRun(knight, 'classic'), runBestWPM: 0 }),
+      JSON.stringify({
+        v: 99,
+        phase: 'encounter',
+        run: newRun(knight, 'classic', 'seed-1'),
+        runBestWPM: 0,
+      }),
     );
     expect(loadRun()).toBeNull();
   });

@@ -1,5 +1,6 @@
 import { t, onLocaleChange, renderTextWithDropCap } from './i18n';
 import { randomWord } from './words';
+import { unseededRng, type Rng } from './rng';
 import { sfxEnrage, sfxHurt, sfxLose, sfxStrike, sfxType, sfxTypo, sfxWin } from './audio';
 import { announce } from './a11y';
 import type { Enemy } from './enemies';
@@ -29,6 +30,7 @@ export interface FightProps {
   playerSprite: string;
   wordLevel: number;
   passive?: string;
+  wordRng?: Rng;
   onWin: (remainingHP: number, outcome: FightOutcome) => void;
   onLose: (outcome: FightOutcome) => void;
 }
@@ -47,7 +49,16 @@ interface State {
 }
 
 export function mountFight(host: HTMLElement, props: FightProps): () => void {
-  const { enemy, player, playerSprite, wordLevel, passive, onWin, onLose } = props;
+  const {
+    enemy,
+    player,
+    playerSprite,
+    wordLevel,
+    passive,
+    wordRng = unseededRng,
+    onWin,
+    onLose,
+  } = props;
 
   host.innerHTML = `
     <div class="fight">
@@ -201,7 +212,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     }
     const wordCount = rollWordCount();
     const parts: string[] = [];
-    for (let i = 0; i < wordCount; i++) parts.push(randomWord(wordLevel));
+    for (let i = 0; i < wordCount; i++) parts.push(randomWord(wordLevel, wordRng));
     const phrase = parts.join(' ');
     state.word = phrase;
     state.wordCount = wordCount;

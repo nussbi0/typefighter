@@ -1,10 +1,13 @@
 import { t, onLocaleChange, renderTextWithDropCap } from './i18n';
 import { sfxBoon } from './audio';
 import { combatStatLines, drawBoons, type PlayerStats, type Upgrade } from './state';
+import { streamFor } from './rng';
 
 export interface LevelUpProps {
   player: PlayerStats;
   favoredBoons: string[];
+  seed: string;
+  depth: number;
   onChosen: () => void;
 }
 
@@ -12,7 +15,10 @@ const DRAW_COUNT = 3;
 const MAX_REROLLS = 1;
 
 export function mountLevelUp(host: HTMLElement, props: LevelUpProps): () => void {
-  const { player, favoredBoons, onChosen } = props;
+  const { player, favoredBoons, seed, depth, onChosen } = props;
+
+  const drawForReroll = (reroll: number) =>
+    drawBoons(DRAW_COUNT, favoredBoons, streamFor(seed, 'boons', depth, reroll));
 
   host.innerHTML = `
     <div class="scene levelup">
@@ -28,7 +34,7 @@ export function mountLevelUp(host: HTMLElement, props: LevelUpProps): () => void
   const grid = root.querySelector('[data-grid]') as HTMLElement;
   const rerollBtn = root.querySelector('[data-reroll]') as HTMLButtonElement;
 
-  let current: Upgrade[] = drawBoons(DRAW_COUNT, favoredBoons);
+  let current: Upgrade[] = drawForReroll(0);
   let rerollsLeft = MAX_REROLLS;
   let resolved = false;
 
@@ -76,7 +82,7 @@ export function mountLevelUp(host: HTMLElement, props: LevelUpProps): () => void
   function reroll() {
     if (rerollsLeft <= 0 || resolved) return;
     rerollsLeft -= 1;
-    current = drawBoons(DRAW_COUNT, favoredBoons);
+    current = drawForReroll(MAX_REROLLS - rerollsLeft);
     renderBoons();
     renderReroll();
     applyI18n();

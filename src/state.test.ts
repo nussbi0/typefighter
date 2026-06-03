@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { classes, findClass } from './classes';
+import { streamFor } from './rng';
 import {
   advance,
   applyModifier,
@@ -49,7 +50,7 @@ describe('classPreview', () => {
 
 describe('newRun', () => {
   it('starts a classic run against the goblin', () => {
-    const run = newRun(knight, 'classic');
+    const run = newRun(knight, 'classic', 'seed-1');
     expect(run.mode).toBe('classic');
     expect(run.fightNumber).toBe(1);
     expect(run.defeated).toBe(0);
@@ -57,7 +58,7 @@ describe('newRun', () => {
   });
 
   it('starts an endless run with a generated foe', () => {
-    const run = newRun(knight, 'endless');
+    const run = newRun(knight, 'endless', 'seed-1');
     expect(run.mode).toBe('endless');
     expect(run.upcomingEnemy).toBeDefined();
   });
@@ -65,7 +66,7 @@ describe('newRun', () => {
 
 describe('isRunComplete', () => {
   it('completes a classic run after the set length', () => {
-    const run = newRun(knight, 'classic');
+    const run = newRun(knight, 'classic', 'seed-1');
     run.defeated = 5;
     expect(isRunComplete(run)).toBe(true);
     run.defeated = 4;
@@ -73,7 +74,7 @@ describe('isRunComplete', () => {
   });
 
   it('never completes an endless run', () => {
-    const run = newRun(knight, 'endless');
+    const run = newRun(knight, 'endless', 'seed-1');
     run.defeated = 99;
     expect(isRunComplete(run)).toBe(false);
   });
@@ -81,7 +82,7 @@ describe('isRunComplete', () => {
 
 describe('advance', () => {
   it('increments defeated and level', () => {
-    const run = newRun(knight, 'classic');
+    const run = newRun(knight, 'classic', 'seed-1');
     advance(run);
     expect(run.defeated).toBe(1);
     expect(run.player.level).toBe(2);
@@ -90,7 +91,7 @@ describe('advance', () => {
 
 describe('modifiers and pending', () => {
   it('queues heal and max-HP boosts', () => {
-    const run = newRun(knight, 'classic');
+    const run = newRun(knight, 'classic', 'seed-1');
     applyModifier(run, 'refuge');
     expect(run.pendingHeal).toBe(25);
     applyModifier(run, 'empower');
@@ -99,7 +100,7 @@ describe('modifiers and pending', () => {
   });
 
   it('applies max-HP boost then heals, clamped to max', () => {
-    const run = newRun(knight, 'classic');
+    const run = newRun(knight, 'classic', 'seed-1');
     run.player.hp = 100;
     run.pendingMaxHPBoost = 15;
     run.pendingHeal = 1000;
@@ -159,6 +160,12 @@ describe('drawBoons', () => {
     const ids = new Set(upgrades.map((u) => u.id));
     const drawn = drawBoons(3, ['might', 'frenzy']);
     expect(drawn.every((u) => ids.has(u.id))).toBe(true);
+  });
+
+  it('is reproducible from a seeded stream', () => {
+    const a = drawBoons(3, [], streamFor('s', 'boons', 1)).map((u) => u.id);
+    const b = drawBoons(3, [], streamFor('s', 'boons', 1)).map((u) => u.id);
+    expect(a).toEqual(b);
   });
 });
 

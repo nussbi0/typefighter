@@ -7,6 +7,7 @@ import {
   isEndlessBossDepth,
   scaleEnemy,
 } from './enemies';
+import { streamFor } from './rng';
 
 describe('findEnemy', () => {
   it('returns the matching enemy', () => {
@@ -110,5 +111,11 @@ describe('endlessCandidates', () => {
     for (let i = 0; i < 30; i++) {
       for (const e of endlessCandidates(1)) expect(e.tier).toBe(1);
     }
+  });
+
+  it('is reproducible from a seeded stream', () => {
+    const a = endlessCandidates(3, streamFor('s', 'foes', 3)).map((e) => e.id);
+    const b = endlessCandidates(3, streamFor('s', 'foes', 3)).map((e) => e.id);
+    expect(a).toEqual(b);
   });
 });

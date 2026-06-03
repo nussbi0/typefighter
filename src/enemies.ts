@@ -1,3 +1,5 @@
+import { unseededRng, type Rng } from './rng';
+
 export interface PhaseChange {
   triggerHPRatio: number;
   msPerChar: number;
@@ -257,15 +259,6 @@ export function enemiesByTier(tier: number): Enemy[] {
 
 export const ENDLESS_BOSS_EVERY = 5;
 
-function shuffle<T>(arr: T[]): T[] {
-  const out = [...arr];
-  for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [out[i], out[j]] = [out[j], out[i]];
-  }
-  return out;
-}
-
 function scalePhase(phase: PhaseChange, speedScale: number, comboAdd: number): PhaseChange {
   return {
     triggerHPRatio: phase.triggerHPRatio,
@@ -323,10 +316,10 @@ export function isEndlessBossDepth(depth: number): boolean {
 
 // Two scaled enemy choices for a given endless depth. Every fifth depth is a
 // boss gauntlet; otherwise the pool of base foes widens as depth increases.
-export function endlessCandidates(depth: number): Enemy[] {
+export function endlessCandidates(depth: number, rng: Rng = unseededRng): Enemy[] {
   const pool = isEndlessBossDepth(depth)
     ? roster.filter((e) => e.isBoss)
     : roster.filter((e) => !e.isBoss && e.tier <= Math.min(4, 1 + Math.floor((depth - 1) / 2)));
-  const picks = shuffle(pool).slice(0, Math.min(2, pool.length));
+  const picks = rng.shuffle(pool).slice(0, Math.min(2, pool.length));
   return picks.map((b) => scaleEnemy(b, depth));
 }

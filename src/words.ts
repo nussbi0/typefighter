@@ -1,4 +1,5 @@
 import { getLocale, type Locale } from './i18n';
+import { unseededRng, type Rng } from './rng';
 
 // Words grouped into difficulty bands (index 0 = shortest/easiest, higher =
 // longer/rarer). The fight requests a word at a difficulty level derived from
@@ -30,12 +31,12 @@ const bands: Record<Locale, string[][]> = {
 // Pick a word for the given difficulty level (1-based). The level selects a
 // window of bands [lo, hi]; as it climbs, the shortest bands drop out and the
 // longest become reachable. Levels beyond the last band stay clamped at the top.
-export function randomWord(level = 1): string {
+export function randomWord(level = 1, rng: Rng = unseededRng): string {
   const list = bands[getLocale()];
   const maxBand = list.length - 1;
   const hi = Math.min(maxBand, Math.max(0, level - 1));
   const lo = Math.max(0, hi - 2);
-  const band = lo + Math.floor(Math.random() * (hi - lo + 1));
+  const band = lo + rng.int(hi - lo + 1);
   const pool = list[band];
-  return pool[Math.floor(Math.random() * pool.length)];
+  return pool[rng.int(pool.length)];
 }

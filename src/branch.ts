@@ -1,25 +1,18 @@
 import { onLocaleChange, renderTextWithDropCap, t } from './i18n';
 import { enemyAbilities, type Enemy } from './enemies';
+import { unseededRng, type Rng } from './rng';
 import type { Modifier, PlayerStats } from './state';
 
 export interface BranchProps {
   enemies: Enemy[];
   player: PlayerStats;
+  rng?: Rng;
   onPicked: (enemy: Enemy, modifier: Modifier) => void;
 }
 
 interface BranchOption {
   enemy: Enemy;
   modifier: Modifier;
-}
-
-function shuffle<T>(arr: T[]): T[] {
-  const out = [...arr];
-  for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [out[i], out[j]] = [out[j], out[i]];
-  }
-  return out;
 }
 
 function modIcon(m: Modifier): string {
@@ -33,7 +26,7 @@ function speedStars(msPerChar: number): string {
   return '★★★★';
 }
 
-function buildOptions(pool: Enemy[]): BranchOption[] {
+function buildOptions(pool: Enemy[], rng: Rng): BranchOption[] {
   if (pool.length < 2) {
     // Fallback: duplicate (shouldn't happen for designed pools)
     const e = pool[0];
@@ -42,14 +35,14 @@ function buildOptions(pool: Enemy[]): BranchOption[] {
       { enemy: e, modifier: 'empower' },
     ];
   }
-  const enemies = shuffle(pool).slice(0, 2);
-  const modifiers: Modifier[] = Math.random() < 0.5 ? ['refuge', 'empower'] : ['empower', 'refuge'];
+  const enemies = rng.shuffle(pool).slice(0, 2);
+  const modifiers: Modifier[] = rng.next() < 0.5 ? ['refuge', 'empower'] : ['empower', 'refuge'];
   return enemies.map((enemy, i) => ({ enemy, modifier: modifiers[i] }));
 }
 
 export function mountBranch(host: HTMLElement, props: BranchProps): () => void {
-  const { enemies, onPicked } = props;
-  const options = buildOptions(enemies);
+  const { enemies, rng = unseededRng, onPicked } = props;
+  const options = buildOptions(enemies, rng);
 
   host.innerHTML = `
     <div class="scene branch">

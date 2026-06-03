@@ -38,6 +38,7 @@ import {
 } from './stats';
 import { endlessCandidates, enemiesByTier, findEnemy, RUN_LENGTH, type Enemy } from './enemies';
 import { initAudioPrefs, isMuted, setMuted, sfxType } from './audio';
+import { randomSeed, streamFor } from './rng';
 
 function applyStaticI18n() {
   document.querySelectorAll<HTMLElement>('[data-i18n]').forEach((el) => {
@@ -203,14 +204,14 @@ function startRun() {
   show((host) => mountModeSelect(host, { onPick: chooseClass }));
 }
 
-function chooseClass(mode: RunMode) {
-  show((host) => mountClassSelect(host, { onPick: (hero) => beginRun(hero, mode) }));
+function chooseClass(mode: RunMode, seed: string = randomSeed(), daily = false) {
+  show((host) => mountClassSelect(host, { onPick: (hero) => beginRun(hero, mode, seed, daily) }));
 }
 
-function beginRun(heroClass: HeroClass, mode: RunMode) {
+function beginRun(heroClass: HeroClass, mode: RunMode, seed: string, daily: boolean) {
   runBestWPM = 0;
   recordRunStart();
-  const run = newRun(heroClass, mode);
+  const run = newRun(heroClass, mode, seed, daily);
   showEncounter(run);
 }
 
@@ -250,6 +251,7 @@ function showFight(run: RunState) {
       playerSprite: run.heroClass.sprite,
       wordLevel: wordLevelFor(run),
       passive: run.heroClass.passive,
+      wordRng: streamFor(run.seed, 'words', run.fightNumber),
       onWin: (remainingHP, outcome) => {
         runBestWPM = Math.max(runBestWPM, outcome.wpm);
         recordFightOutcome(outcome, getLocale());
@@ -280,6 +282,8 @@ function showLevelUp(run: RunState) {
     mountLevelUp(host, {
       player: run.player,
       favoredBoons: run.heroClass.favoredBoons,
+      seed: run.seed,
+      depth: run.fightNumber,
       onChosen: () => afterLevelUp(run),
     }),
   );
@@ -300,7 +304,9 @@ function afterLevelUp(run: RunState) {
 function enterBranch(run: RunState) {
   const nextFightNumber = run.fightNumber + 1;
   const candidates =
-    run.mode === 'endless' ? endlessCandidates(nextFightNumber) : enemiesByTier(nextFightNumber);
+    run.mode === 'endless'
+      ? endlessCandidates(nextFightNumber, streamFor(run.seed, 'foes', nextFightNumber))
+      : enemiesByTier(nextFightNumber);
   persist(run, 'branch');
   showBranch(run, nextFightNumber, candidates);
 }
@@ -310,6 +316,7 @@ function showBranch(run: RunState, nextFightNumber: number, candidates: Enemy[])
     mountBranch(host, {
       enemies: candidates,
       player: run.player,
+      rng: streamFor(run.seed, 'branch', nextFightNumber),
       onPicked: (enemy, modifier) => {
         run.fightNumber = nextFightNumber;
         run.upcomingEnemy = enemy;
@@ -350,6 +357,9 @@ function showRunOver(run: RunState, result: 'won' | 'lost') {
 function resumeRun(saved: SavedRun) {
   runBestWPM = saved.runBestWPM;
   const { run } = saved;
+  // Backfill fields added after older saves were written.
+  if (!run.seed) run.seed = randomSeed();
+  run.daily = run.daily ?? false;
   if (saved.phase === 'levelup') showLevelUp(run);
   else if (saved.phase === 'branch') enterBranch(run);
   else showEncounter(run);

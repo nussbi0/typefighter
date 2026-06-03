@@ -1,4 +1,5 @@
 import { endlessCandidates, findEnemy, RUN_LENGTH, type Enemy } from './enemies';
+import { streamFor, unseededRng, type Rng } from './rng';
 import type { HeroClass } from './classes';
 
 export type RunMode = 'classic' | 'endless';
@@ -23,6 +24,8 @@ export interface RunState {
   player: PlayerStats;
   heroClass: HeroClass;
   mode: RunMode;
+  seed: string;
+  daily: boolean;
   fightNumber: number;
   defeated: number;
   upcomingEnemy: Enemy;
@@ -54,14 +57,18 @@ export function classPreview(heroClass: HeroClass): PlayerStats {
   return p;
 }
 
-export function newRun(heroClass: HeroClass, mode: RunMode): RunState {
+export function newRun(heroClass: HeroClass, mode: RunMode, seed: string, daily = false): RunState {
+  const firstEnemy =
+    mode === 'endless' ? endlessCandidates(1, streamFor(seed, 'foes', 1))[0] : findEnemy('goblin');
   return {
     player: classPreview(heroClass),
     heroClass,
     mode,
+    seed,
+    daily,
     fightNumber: 1,
     defeated: 0,
-    upcomingEnemy: mode === 'endless' ? endlessCandidates(1)[0] : findEnemy('goblin'),
+    upcomingEnemy: firstEnemy,
     pendingHeal: 0,
     pendingMaxHPBoost: 0,
   };
@@ -241,22 +248,17 @@ export const upgrades: Upgrade[] = [
 
 const FAVORED_WEIGHT = 3;
 
-export function drawBoons(count: number, favored: string[] = []): Upgrade[] {
+export function drawBoons(
+  count: number,
+  favored: string[] = [],
+  rng: Rng = unseededRng,
+): Upgrade[] {
   const favoredSet = new Set(favored);
   const remaining = upgrades.map((u) => ({ u, w: favoredSet.has(u.id) ? FAVORED_WEIGHT : 1 }));
   const picked: Upgrade[] = [];
   const n = Math.min(count, remaining.length);
   while (picked.length < n) {
-    const total = remaining.reduce((s, e) => s + e.w, 0);
-    let r = Math.random() * total;
-    let idx = remaining.length - 1;
-    for (let i = 0; i < remaining.length; i++) {
-      r -= remaining[i].w;
-      if (r < 0) {
-        idx = i;
-        break;
-      }
-    }
+    const idx = rng.weightedIndex(remaining.map((e) => e.w));
     picked.push(remaining[idx].u);
     remaining.splice(idx, 1);
   }
