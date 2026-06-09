@@ -9,6 +9,7 @@ export interface HeroClass {
   favoredBoons: string[];
   passive: string; // unique combat mechanic, resolved in fight.ts
   passiveKey: string; // i18n key describing the passive
+  spell: string; // incantation ability id (word = spell_<id>_word, desc = spell_<id>_desc)
 }
 
 export const classes: HeroClass[] = [
@@ -21,6 +22,7 @@ export const classes: HeroClass[] = [
     favoredBoons: ['bulwark', 'vigor', 'mend', 'renewal'],
     passive: 'guard',
     passiveKey: 'passive_knight',
+    spell: 'aegis',
   },
   {
     id: 'mage',
@@ -31,6 +33,7 @@ export const classes: HeroClass[] = [
     favoredBoons: ['frenzy', 'focus', 'might', 'precision'],
     passive: 'overload',
     passiveKey: 'passive_mage',
+    spell: 'fireball',
   },
   {
     id: 'rogue',
@@ -41,6 +44,7 @@ export const classes: HeroClass[] = [
     favoredBoons: ['precision', 'might', 'bloodthirst', 'frenzy'],
     passive: 'ambush',
     passiveKey: 'passive_rogue',
+    spell: 'eviscerate',
   },
   {
     id: 'templar',
@@ -51,6 +55,7 @@ export const classes: HeroClass[] = [
     favoredBoons: ['renewal', 'bulwark', 'sentinel', 'mend'],
     passive: 'consecration',
     passiveKey: 'passive_templar',
+    spell: 'smite',
   },
   {
     id: 'berserker',
@@ -61,6 +66,7 @@ export const classes: HeroClass[] = [
     favoredBoons: ['might', 'frenzy', 'execution', 'bloodthirst'],
     passive: 'bloodlust',
     passiveKey: 'passive_berserker',
+    spell: 'rampage',
   },
 ];
 

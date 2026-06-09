@@ -37,6 +37,7 @@ export function mountClassSelect(host: HTMLElement, props: ClassSelectProps): ()
       <div class="class-name with-drop-cap" data-i18n="${c.nameKey}"></div>
       <div class="class-desc" data-i18n="${c.descKey}"></div>
       <div class="class-passive" data-i18n="${c.passiveKey}"></div>
+      <div class="class-spell" data-i18n="spell_${c.spell}_desc"></div>
       <dl class="stat-list class-stats">
         ${stats
           .map(

@@ -129,7 +129,9 @@ body {
   .guard,
   .ward,
   .curse,
-  .dodge {
+  .dodge,
+  .cast,
+  .fizzle {
     animation: damage-fade 1000ms ease forwards;
   }
   .hp-fill {
@@ -1015,6 +1017,21 @@ body {
   }
 }
 
+.word.kind-spell {
+  border-color: #8a5cd0;
+  box-shadow:
+    0 3px 14px rgba(138, 92, 208, 0.55),
+    inset 0 0 0 1px #8a5cd0;
+}
+.word.kind-spell .typed,
+.word.kind-spell .rest {
+  color: #6a3fa8;
+}
+.word.kind-spell .cursor {
+  color: #fff;
+  background: rgba(138, 92, 208, 0.45);
+}
+
 .avatar.shielded {
   box-shadow:
     0 0 0 3px rgba(74, 144, 217, 0.7),
@@ -1187,6 +1204,28 @@ body {
   color: #b0309a;
 }
 .dodge {
+  color: var(--ink-muted);
+  text-shadow: 1px 1px 0 var(--parchment-1);
+}
+
+.cast,
+.fizzle {
+  position: absolute;
+  top: 8px;
+  left: 28px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-shadow: 1px 1px 0 var(--ink);
+  animation: heal-float 1000ms ease-out forwards;
+}
+.cast {
+  font-size: 20px;
+  color: #9b6cff;
+}
+.fizzle {
+  font-size: 15px;
   color: var(--ink-muted);
   text-shadow: 1px 1px 0 var(--parchment-1);
 }
@@ -2133,6 +2172,17 @@ body {
   line-height: 1.4;
   padding: 7px 12px;
   background: rgba(20, 12, 4, 0.08);
+  border: 1px solid var(--panel-border);
+  border-radius: 3px;
+}
+
+.class-spell {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.4;
+  padding: 7px 12px;
+  background: rgba(138, 92, 208, 0.1);
   border: 1px solid var(--panel-border);
   border-radius: 3px;
 }

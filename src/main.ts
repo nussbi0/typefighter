@@ -354,6 +354,7 @@ function showFight(run: RunState) {
       playerSprite: run.heroClass.sprite,
       wordLevel: wordLevelFor(run),
       passive: run.heroClass.passive,
+      spell: run.heroClass.spell,
       wordRng: streamFor(run.seed, 'words', run.fightNumber),
       onWin: (remainingHP, outcome) => {
         tallyOutcome(outcome);

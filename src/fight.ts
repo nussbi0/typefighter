@@ -39,6 +39,7 @@ export interface FightProps {
   playerSprite: string;
   wordLevel: number;
   passive?: string;
+  spell?: string;
   wordRng?: Rng;
   onWin: (remainingHP: number, outcome: FightOutcome) => void;
   onLose: (outcome: FightOutcome) => void;
@@ -64,6 +65,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     playerSprite,
     wordLevel,
     passive,
+    spell,
     wordRng = unseededRng,
     onWin,
     onLose,
@@ -207,7 +209,8 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
       state.typed = '';
       state.wordCount = 1;
       wordKind = 'normal';
-      els.word.classList.remove('active', 'combo', 'kind-flame', 'kind-ward', 'kind-cursed');
+      els.word.classList.remove('active', 'combo');
+      clearWordKindClass();
       renderWord();
       scheduleSpawn(180);
     }
@@ -243,18 +246,27 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     // Specials apply only to single-word spawns, and never the opening word.
     const isFirstSpawn = firstSpawnAt === 0;
     wordKind = wordCount === 1 && !isFirstSpawn ? rollWordKind(wordRng) : 'normal';
-    const parts: string[] = [];
-    for (let i = 0; i < wordCount; i++) {
-      // Avoid the previous spawn's last word and any word already in this combo,
-      // so no word repeats next to itself or elsewhere in the same phrase.
-      const avoid = lastWord != null ? [lastWord, ...parts] : parts;
-      const w = randomWord(wordLevel, wordRng, avoid);
-      parts.push(w);
-      lastWord = w;
+    if (wordKind === 'spell' && !spell) wordKind = 'normal';
+
+    let phrase: string;
+    if (wordKind === 'spell') {
+      // The incantation word for this hero's signature ability.
+      phrase = t(`spell_${spell}_word`);
+      state.wordCount = 1;
+    } else {
+      const parts: string[] = [];
+      for (let i = 0; i < wordCount; i++) {
+        // Avoid the previous spawn's last word and any word already in this combo,
+        // so no word repeats next to itself or elsewhere in the same phrase.
+        const avoid = lastWord != null ? [lastWord, ...parts] : parts;
+        const w = randomWord(wordLevel, wordRng, avoid);
+        parts.push(w);
+        lastWord = w;
+      }
+      phrase = parts.join(' ');
+      state.wordCount = wordCount;
     }
-    const phrase = parts.join(' ');
     state.word = phrase;
-    state.wordCount = wordCount;
     state.typed = '';
     state.wordSpawnedAt = performance.now();
     const overdriveSlow = overdriveActive() ? OVERDRIVE_SLOW : 1;
@@ -327,6 +339,10 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
       }
     } else {
       mistakes += 1;
+      if (wordKind === 'spell') {
+        fizzleSpell();
+        return;
+      }
       sfxTypo();
       flashTypo();
     }
@@ -342,6 +358,11 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     // Cursed word — typing it backfires on you instead of striking the foe.
     if (wordKind === 'cursed') {
       resolveCursed();
+      return;
+    }
+    // Spell word — typing the incantation casts the hero's ability.
+    if (wordKind === 'spell') {
+      castSpell();
       return;
     }
     const elapsed = performance.now() - state.wordSpawnedAt;
@@ -414,6 +435,72 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     }
   }
 
+  function castSpell() {
+    let dmg = 0;
+    let healAmount = 0;
+    let grantShield = false;
+    switch (spell) {
+      case 'fireball':
+        dmg = Math.round(BASE_DAMAGE * 3.5 * player.atkMult);
+        break;
+      case 'eviscerate':
+        dmg = Math.round(BASE_DAMAGE * 2 * player.atkMult * player.critMult);
+        break;
+      case 'smite':
+        dmg = Math.round(BASE_DAMAGE * 2 * player.atkMult);
+        healAmount = 16;
+        break;
+      case 'rampage': {
+        const missing = 1 - state.playerHP / player.maxHP;
+        dmg = Math.round(BASE_DAMAGE * (2 + missing * 3) * player.atkMult);
+        break;
+      }
+      case 'aegis':
+      default:
+        grantShield = true;
+        healAmount = 24;
+        break;
+    }
+
+    if (dmg > 0) {
+      if (enemy.armor) dmg = Math.max(1, dmg - enemy.armor);
+      state.enemyHP = Math.max(0, state.enemyHP - dmg);
+      sfxStrike('perfect', true);
+      showHit('enemy', dmg, 'perfect', true);
+      hitFlash(els.enemyAvatar);
+      spawnBurst(els.enemyAvatar, 'spark', 14);
+      shake();
+      applyHeal(Math.round(dmg * player.lifesteal));
+    }
+    if (grantShield) {
+      shield = true;
+      updateShield();
+    }
+    if (healAmount > 0) applyHeal(healAmount);
+    showFloat('cast', t('cast_label'));
+    gainMomentum('great');
+
+    clearReachedWord();
+    renderHP();
+    checkPhaseChange();
+    if (state.enemyHP === 0) {
+      spawnBurst(els.enemyAvatar, 'spark', 16);
+      els.enemyAvatar.classList.remove('enraged', 'cast');
+      els.enemyAvatar.classList.add('defeated');
+      shake();
+      endFight('won');
+    } else {
+      scheduleSpawn();
+    }
+  }
+
+  function fizzleSpell() {
+    sfxTypo();
+    showFloat('fizzle', t('fizzle_label'));
+    clearReachedWord();
+    scheduleSpawn();
+  }
+
   function resolveCursed() {
     const dmg = Math.max(1, Math.round(enemy.hitDamage * 0.7));
     state.playerHP = Math.max(0, state.playerHP - dmg);
@@ -455,7 +542,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   }
 
   function clearWordKindClass() {
-    els.word.classList.remove('kind-flame', 'kind-ward', 'kind-cursed');
+    els.word.classList.remove('kind-flame', 'kind-ward', 'kind-cursed', 'kind-spell');
   }
 
   function updateShield() {
@@ -551,6 +638,13 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     // A cursed word you correctly let pass does no harm.
     if (wordKind === 'cursed') {
       showFloat('dodge', t('curse_dodged'));
+      clearReachedWord();
+      scheduleSpawn();
+      return;
+    }
+    // An uncast spell word simply fades — a missed opportunity, not a hit.
+    if (wordKind === 'spell') {
+      showFloat('fizzle', t('fizzle_label'));
       clearReachedWord();
       scheduleSpawn();
       return;

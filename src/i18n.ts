@@ -167,6 +167,7 @@ const messages: Record<Locale, Messages> = {
     howto_p5: 'Switch EN/DE and review your records (Annals) up top.',
     howto_p6: 'Pick Classic (a set gauntlet) or Endless (survive as deep as you can).',
     howto_p7: 'Chain Perfect strikes to build Momentum — fill it to unleash Overdrive.',
+    howto_p8: "A glowing spell word casts your hero's ability — type it perfectly, or it fizzles.",
     howto_begin: 'Enter the fray',
 
     classselect_title: 'Choose your hero',
@@ -188,6 +189,19 @@ const messages: Record<Locale, Messages> = {
     passive_templar: "Consecration — heal 12 HP at each fight's start.",
     passive_berserker: 'Bloodlust — more damage the lower your HP.',
     passive_guard: 'Guard',
+
+    spell_aegis_word: 'aegis',
+    spell_fireball_word: 'fireball',
+    spell_eviscerate_word: 'eviscerate',
+    spell_smite_word: 'smite',
+    spell_rampage_word: 'rampage',
+    spell_aegis_desc: 'Aegis — a shield and a surge of vigor.',
+    spell_fireball_desc: 'Fireball — a searing burst of damage.',
+    spell_eviscerate_desc: 'Eviscerate — a devastating critical blow.',
+    spell_smite_desc: 'Smite — damage and a touch of healing.',
+    spell_rampage_desc: 'Rampage — bigger the lower your HP.',
+    cast_label: 'Cast!',
+    fizzle_label: 'Fizzled',
 
     ability_armor: 'Armor {n}',
     ability_regen: 'Regen {n}',
@@ -374,6 +388,8 @@ const messages: Record<Locale, Messages> = {
     howto_p5: 'Wechsle EN/DE und sieh deine Rekorde (Chronik) oben ein.',
     howto_p6: 'Wähle Klassisch (fester Parcours) oder Endlos (so tief wie möglich überleben).',
     howto_p7: 'Verkette Perfekt-Treffer für Schwung — fülle ihn für den Overdrive.',
+    howto_p8:
+      'Ein leuchtendes Zauberwort wirkt deine Fähigkeit — tippe es fehlerfrei, sonst verpufft es.',
     howto_begin: 'In den Kampf',
 
     classselect_title: 'Wähle deinen Helden',
@@ -395,6 +411,19 @@ const messages: Record<Locale, Messages> = {
     passive_templar: 'Weihe — heile 12 LP zu Kampfbeginn.',
     passive_berserker: 'Blutrausch — mehr Schaden, je weniger LP.',
     passive_guard: 'Schutz',
+
+    spell_aegis_word: 'schild',
+    spell_fireball_word: 'feuerball',
+    spell_eviscerate_word: 'meucheln',
+    spell_smite_word: 'strafen',
+    spell_rampage_word: 'amoklauf',
+    spell_aegis_desc: 'Schild — eine Barriere und ein Schub Lebenskraft.',
+    spell_fireball_desc: 'Feuerball — eine sengende Schadensexplosion.',
+    spell_eviscerate_desc: 'Meucheln — ein verheerender kritischer Schlag.',
+    spell_smite_desc: 'Strafen — Schaden und etwas Heilung.',
+    spell_rampage_desc: 'Amoklauf — stärker, je weniger LP.',
+    cast_label: 'Gewirkt!',
+    fizzle_label: 'Verpufft',
 
     ability_armor: 'Rüstung {n}',
     ability_regen: 'Regen {n}',

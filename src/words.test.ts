@@ -65,9 +65,9 @@ describe('rollWordKind', () => {
       counts[k] = (counts[k] ?? 0) + 1;
     }
     expect(
-      Object.keys(counts).every((k) => ['normal', 'flame', 'ward', 'cursed'].includes(k)),
+      Object.keys(counts).every((k) => ['normal', 'flame', 'ward', 'cursed', 'spell'].includes(k)),
     ).toBe(true);
-    expect(counts.normal).toBeGreaterThan(2000); // ~74% normal
+    expect(counts.normal).toBeGreaterThan(2000); // ~68% normal
     expect(counts.flame).toBeGreaterThan(0);
     expect(counts.ward).toBeGreaterThan(0);
     expect(counts.cursed).toBeGreaterThan(0);
