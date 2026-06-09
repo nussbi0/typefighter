@@ -1,5 +1,5 @@
 import { t, onLocaleChange, renderTextWithDropCap } from './i18n';
-import { randomWord } from './words';
+import { randomWord, rollWordKind, type WordKind } from './words';
 import { unseededRng, type Rng } from './rng';
 import { sfxEnrage, sfxHurt, sfxLose, sfxStrike, sfxType, sfxTypo, sfxWin } from './audio';
 import { announce } from './a11y';
@@ -150,6 +150,8 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   let correctChars = 0;
   let mistakes = 0;
   let lastWord: string | undefined; // avoid spawning the same word twice in a row
+  let wordKind: WordKind = 'normal'; // the current spawn's special kind
+  let shield = false; // a Ward word grants a shield that absorbs the next hit
 
   // Enemy status effects + per-class passive bookkeeping
   let poisonStacks = 0;
@@ -180,7 +182,8 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
       state.word = null;
       state.typed = '';
       state.wordCount = 1;
-      els.word.classList.remove('active');
+      wordKind = 'normal';
+      els.word.classList.remove('active', 'combo', 'kind-flame', 'kind-ward', 'kind-cursed');
       renderWord();
       scheduleSpawn(180);
     }
@@ -213,6 +216,9 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
       renderHP();
     }
     const wordCount = rollWordCount();
+    // Specials apply only to single-word spawns, and never the opening word.
+    const isFirstSpawn = firstSpawnAt === 0;
+    wordKind = wordCount === 1 && !isFirstSpawn ? rollWordKind(wordRng) : 'normal';
     const parts: string[] = [];
     for (let i = 0; i < wordCount; i++) {
       const w = randomWord(wordLevel, wordRng, lastWord);
@@ -230,8 +236,10 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     );
     if (firstSpawnAt === 0) firstSpawnAt = state.wordSpawnedAt;
     renderWord();
+    clearWordKindClass();
     els.word.classList.add('active');
     els.word.classList.toggle('combo', wordCount > 1);
+    if (wordKind !== 'normal') els.word.classList.add(`kind-${wordKind}`);
     els.enemyAvatar.classList.remove('cast');
     void els.enemyAvatar.offsetWidth;
     els.enemyAvatar.classList.add('cast');
@@ -303,6 +311,11 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   }
 
   function resolveCompletion() {
+    // Cursed word — typing it backfires on you instead of striking the foe.
+    if (wordKind === 'cursed') {
+      resolveCursed();
+      return;
+    }
     const elapsed = performance.now() - state.wordSpawnedAt;
     const progress = elapsed / state.wordDuration;
     const tier = classifyTier(progress);
@@ -319,6 +332,8 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     wordsCompleted += 1;
     const overload = passive === 'overload' && wordsCompleted % 4 === 0;
     if (overload) dmg *= 2;
+    // Flame word — an enchanted strike for bonus damage
+    if (wordKind === 'flame') dmg *= 1.5;
 
     dmg = Math.round(dmg);
 
@@ -343,10 +358,17 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     } else if (wasCombo) {
       spawnBurst(els.enemyAvatar, 'spark', 5);
     }
+    if (wordKind === 'flame') spawnBurst(els.enemyAvatar, 'ember', 8);
+    if (wordKind === 'ward') {
+      shield = true;
+      updateShield();
+      showFloat('ward', t('ward_gained'));
+    }
     state.word = null;
     state.typed = '';
     state.wordCount = 1;
     els.word.classList.remove('active', 'combo');
+    clearWordKindClass();
     renderWord();
     renderHP();
     checkPhaseChange();
@@ -356,6 +378,29 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
       els.enemyAvatar.classList.add('defeated');
       shake();
       endFight('won');
+    } else {
+      scheduleSpawn();
+    }
+  }
+
+  function resolveCursed() {
+    const dmg = Math.max(1, Math.round(enemy.hitDamage * 0.7));
+    state.playerHP = Math.max(0, state.playerHP - dmg);
+    sfxHurt();
+    showHit('player', dmg);
+    showFloat('curse', t('curse_label'));
+    hitFlash(els.playerAvatar);
+    spawnBurst(els.playerAvatar, 'ember', 7);
+    shake();
+    state.word = null;
+    state.typed = '';
+    state.wordCount = 1;
+    els.word.classList.remove('active', 'combo');
+    clearWordKindClass();
+    renderWord();
+    renderHP();
+    if (state.playerHP === 0) {
+      endFight('lost');
     } else {
       scheduleSpawn();
     }
@@ -375,6 +420,14 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     node.textContent = text;
     els.floater.appendChild(node);
     setTimeout(() => node.remove(), 1000);
+  }
+
+  function clearWordKindClass() {
+    els.word.classList.remove('kind-flame', 'kind-ward', 'kind-cursed');
+  }
+
+  function updateShield() {
+    els.playerAvatar.classList.toggle('shielded', shield);
   }
 
   function loop() {
@@ -411,7 +464,34 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     els.word.style.transform = `translate(${x}px, -50%)`;
   }
 
+  function clearReachedWord() {
+    state.word = null;
+    state.typed = '';
+    state.wordCount = 1;
+    els.word.classList.remove('active', 'combo');
+    clearWordKindClass();
+    renderWord();
+  }
+
   function enemyHits() {
+    // A cursed word you correctly let pass does no harm.
+    if (wordKind === 'cursed') {
+      showFloat('dodge', t('curse_dodged'));
+      clearReachedWord();
+      scheduleSpawn();
+      return;
+    }
+    // A Ward shield absorbs this blow entirely (and its on-hit effects).
+    if (shield) {
+      shield = false;
+      updateShield();
+      showFloat('ward', t('ward_block'));
+      hitFlash(els.playerAvatar);
+      clearReachedWord();
+      renderHP();
+      scheduleSpawn();
+      return;
+    }
     const dmgMult = PLAYER_DMG_COMBO_MULT[state.wordCount] ?? 1;
     const raw = Math.round(enemy.hitDamage * dmgMult);
     let dmg = Math.max(1, raw - player.defense);
@@ -444,6 +524,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     state.typed = '';
     state.wordCount = 1;
     els.word.classList.remove('active', 'combo');
+    clearWordKindClass();
     renderWord();
     renderHP();
     if (state.playerHP === 0) {
@@ -549,6 +630,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     else sfxLose();
     announce(result === 'won' ? t('victory') : t('defeat'));
     els.word.classList.remove('active', 'combo');
+    clearWordKindClass();
     renderTextWithDropCap(els.banner, result === 'won' ? t('victory') : t('defeat'));
     els.banner.dataset.state = result;
     els.banner.classList.add('show');

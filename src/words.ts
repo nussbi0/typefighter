@@ -31,6 +31,22 @@ const bands: Record<Locale, string[][]> = {
 // Pick a word for the given difficulty level (1-based). The level selects a
 // window of bands [lo, hi]; as it climbs, the shortest bands drop out and the
 // longest become reachable. Levels beyond the last band stay clamped at the top.
+// Special word kinds. Drawn from the (seeded) word stream so a daily seed
+// presents the same enchanted/cursed words to everyone.
+export type WordKind = 'normal' | 'flame' | 'ward' | 'cursed';
+
+const FLAME_CHANCE = 0.1;
+const WARD_CHANCE = 0.08;
+const CURSED_CHANCE = 0.08;
+
+export function rollWordKind(rng: Rng = unseededRng): WordKind {
+  const r = rng.next();
+  if (r < FLAME_CHANCE) return 'flame';
+  if (r < FLAME_CHANCE + WARD_CHANCE) return 'ward';
+  if (r < FLAME_CHANCE + WARD_CHANCE + CURSED_CHANCE) return 'cursed';
+  return 'normal';
+}
+
 export function randomWord(level = 1, rng: Rng = unseededRng, avoid?: string): string {
   const list = bands[getLocale()];
   const maxBand = list.length - 1;

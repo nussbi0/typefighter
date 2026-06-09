@@ -135,6 +135,10 @@ const messages: Record<Locale, Messages> = {
     tier_perfect: 'Perfect!',
     tier_great: 'Great!',
     enraged: 'Enraged!',
+    ward_gained: 'Warded',
+    ward_block: 'Blocked!',
+    curse_label: 'Cursed!',
+    curse_dodged: 'Dodged',
 
     stat_best_fight: 'Best fight',
     stat_record_wpm: 'Record WPM',
@@ -192,6 +196,10 @@ const messages: Record<Locale, Messages> = {
     ability_lifesteal_tip: 'Lifesteal — the foe heals when it strikes you.',
     ability_poison_tip: 'Poison — its hits leave venom that wounds you over time.',
     howto_abilities_title: 'Foes & their tricks',
+    howto_arcane_title: 'Arcane words',
+    arcane_flame: 'Flame (gold) — type it for a stronger strike.',
+    arcane_ward: 'Ward (blue) — type it to gain a shield that blocks the next hit.',
+    arcane_cursed: "Cursed (red) — don't type it! Let it pass; typing it harms you.",
 
     branch_title: 'A crossroads',
     branch_subtitle: 'Two foes lie ahead — choose your trial.',
@@ -332,6 +340,10 @@ const messages: Record<Locale, Messages> = {
     tier_perfect: 'Perfekt!',
     tier_great: 'Stark!',
     enraged: 'Wütend!',
+    ward_gained: 'Geschützt',
+    ward_block: 'Geblockt!',
+    curse_label: 'Verflucht!',
+    curse_dodged: 'Ausgewichen',
 
     stat_best_fight: 'Bester Kampf',
     stat_record_wpm: 'Rekord WPM',
@@ -389,6 +401,10 @@ const messages: Record<Locale, Messages> = {
     ability_lifesteal_tip: 'Lebensraub — der Gegner heilt sich, wenn er dich trifft.',
     ability_poison_tip: 'Gift — seine Treffer verletzen dich über Zeit weiter.',
     howto_abilities_title: 'Gegner & ihre Tücken',
+    howto_arcane_title: 'Arkane Wörter',
+    arcane_flame: 'Flamme (gold) — tippe es für einen stärkeren Schlag.',
+    arcane_ward: 'Schutz (blau) — tippe es für einen Schild, der den nächsten Treffer blockt.',
+    arcane_cursed: 'Verflucht (rot) — nicht tippen! Lass es vorbei; tippen schadet dir.',
 
     branch_title: 'Eine Wegkreuzung',
     branch_subtitle: 'Zwei Feinde stehen bereit — wähle deine Prüfung.',

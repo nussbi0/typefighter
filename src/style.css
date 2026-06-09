@@ -116,6 +116,7 @@ body {
   .avatar.cast,
   .enemy-avatar.enraged,
   .word.typo,
+  .word.kind-cursed,
   .record-badge,
   .phase-banner {
     animation: none;
@@ -124,7 +125,10 @@ body {
   .damage.crit,
   .heal,
   .poison,
-  .guard {
+  .guard,
+  .ward,
+  .curse,
+  .dodge {
     animation: damage-fade 1000ms ease forwards;
   }
   .hp-fill {
@@ -899,6 +903,62 @@ body {
     inset 0 0 0 1px var(--crimson);
 }
 
+.word.kind-flame {
+  border-color: var(--gold-bright);
+  box-shadow:
+    0 3px 12px rgba(243, 197, 74, 0.6),
+    inset 0 0 0 1px var(--gold-bright);
+}
+.word.kind-flame .cursor {
+  color: var(--gold-dim);
+  background: rgba(243, 197, 74, 0.25);
+}
+
+.word.kind-ward {
+  border-color: #4a90d9;
+  box-shadow:
+    0 3px 12px rgba(74, 144, 217, 0.55),
+    inset 0 0 0 1px #4a90d9;
+}
+.word.kind-ward .cursor {
+  color: #2f6db3;
+  background: rgba(74, 144, 217, 0.22);
+}
+
+.word.kind-cursed {
+  border-color: #8a1f5a;
+  animation: cursed-pulse 0.7s ease-in-out infinite;
+}
+.word.kind-cursed .typed,
+.word.kind-cursed .rest {
+  color: #8a1f5a;
+}
+.word.kind-cursed .cursor {
+  color: #fff;
+  background: rgba(138, 31, 90, 0.45);
+}
+
+@keyframes cursed-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 3px 14px rgba(138, 31, 90, 0.5),
+      inset 0 0 0 1px #8a1f5a;
+  }
+  50% {
+    box-shadow:
+      0 3px 18px rgba(138, 31, 90, 0.85),
+      inset 0 0 0 2px #8a1f5a;
+  }
+}
+
+.avatar.shielded {
+  box-shadow:
+    0 0 0 3px rgba(74, 144, 217, 0.7),
+    0 0 18px rgba(74, 144, 217, 0.55);
+  border-radius: 4px;
+}
+
 .word.typo {
   animation: typo-flash 240ms ease;
 }
@@ -1041,6 +1101,31 @@ body {
   color: var(--gold-bright);
   text-shadow: 1px 1px 0 var(--ink);
   animation: heal-float 1000ms ease-out forwards;
+}
+
+.ward,
+.curse,
+.dodge {
+  position: absolute;
+  top: 8px;
+  left: 28px;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-shadow: 1px 1px 0 var(--ink);
+  animation: heal-float 1000ms ease-out forwards;
+}
+
+.ward {
+  color: #4a90d9;
+}
+.curse {
+  color: #b0309a;
+}
+.dodge {
+  color: var(--ink-muted);
+  text-shadow: 1px 1px 0 var(--parchment-1);
 }
 
 @keyframes heal-float {

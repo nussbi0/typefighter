@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { randomWord } from './words';
+import { randomWord, rollWordKind } from './words';
 import { getLocale } from './i18n';
+import { streamFor } from './rng';
 
 describe('randomWord', () => {
   it('defaults to english', () => {
@@ -35,5 +36,31 @@ describe('randomWord', () => {
       expect(w).not.toBe(prev);
       prev = w;
     }
+  });
+});
+
+describe('rollWordKind', () => {
+  it('is reproducible from a seeded stream', () => {
+    const r1 = streamFor('k', 'words', 1);
+    const r2 = streamFor('k', 'words', 1);
+    const s1 = Array.from({ length: 50 }, () => rollWordKind(r1));
+    const s2 = Array.from({ length: 50 }, () => rollWordKind(r2));
+    expect(s1).toEqual(s2);
+  });
+
+  it('returns only valid kinds and is mostly normal', () => {
+    const r = streamFor('distribution');
+    const counts: Record<string, number> = {};
+    for (let i = 0; i < 4000; i++) {
+      const k = rollWordKind(r);
+      counts[k] = (counts[k] ?? 0) + 1;
+    }
+    expect(
+      Object.keys(counts).every((k) => ['normal', 'flame', 'ward', 'cursed'].includes(k)),
+    ).toBe(true);
+    expect(counts.normal).toBeGreaterThan(2000); // ~74% normal
+    expect(counts.flame).toBeGreaterThan(0);
+    expect(counts.ward).toBeGreaterThan(0);
+    expect(counts.cursed).toBeGreaterThan(0);
   });
 });
