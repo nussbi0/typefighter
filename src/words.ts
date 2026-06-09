@@ -47,19 +47,25 @@ export function rollWordKind(rng: Rng = unseededRng): WordKind {
   return 'normal';
 }
 
-export function randomWord(level = 1, rng: Rng = unseededRng, avoid?: string): string {
+export function randomWord(
+  level = 1,
+  rng: Rng = unseededRng,
+  avoid?: string | readonly string[],
+): string {
   const list = bands[getLocale()];
   const maxBand = list.length - 1;
   const hi = Math.min(maxBand, Math.max(0, level - 1));
   const lo = Math.max(0, hi - 2);
-  // Redraw a few times to avoid repeating the previous word — two identical
-  // words in a row read oddly. The pools are large, so this rarely loops.
+  const avoidSet =
+    avoid == null ? null : typeof avoid === 'string' ? new Set([avoid]) : new Set(avoid);
+  // Redraw a few times to skip any avoided word — repeats within or across a
+  // combo read oddly. The pools are large, so this rarely loops.
   let word = '';
   for (let attempt = 0; attempt < 8; attempt++) {
     const band = lo + rng.int(hi - lo + 1);
     const pool = list[band];
     word = pool[rng.int(pool.length)];
-    if (word !== avoid) break;
+    if (!avoidSet || !avoidSet.has(word)) break;
   }
   return word;
 }

@@ -221,7 +221,10 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     wordKind = wordCount === 1 && !isFirstSpawn ? rollWordKind(wordRng) : 'normal';
     const parts: string[] = [];
     for (let i = 0; i < wordCount; i++) {
-      const w = randomWord(wordLevel, wordRng, lastWord);
+      // Avoid the previous spawn's last word and any word already in this combo,
+      // so no word repeats next to itself or elsewhere in the same phrase.
+      const avoid = lastWord != null ? [lastWord, ...parts] : parts;
+      const w = randomWord(wordLevel, wordRng, avoid);
       parts.push(w);
       lastWord = w;
     }

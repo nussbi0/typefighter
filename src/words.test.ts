@@ -37,6 +37,15 @@ describe('randomWord', () => {
       prev = w;
     }
   });
+
+  it('avoids every word in a given set (whole-combo dedup)', () => {
+    for (let i = 0; i < 300; i++) {
+      const a = randomWord(3);
+      const b = randomWord(3, undefined, [a]);
+      const c = randomWord(3, undefined, [a, b]);
+      expect(new Set([a, b, c]).size).toBe(3);
+    }
+  });
 });
 
 describe('rollWordKind', () => {
