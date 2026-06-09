@@ -172,6 +172,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   let shield = false; // a Ward word grants a shield that absorbs the next hit
   let momentum = 0; // builds with strikes; fills to trigger Overdrive
   let overdriveUntil = 0; // performance.now() timestamp; 0 = not in Overdrive
+  let lastLoopAt = 0; // previous frame time, for the Overdrive pause delta
 
   const MOMENTUM_MAX = 10;
   const MOMENTUM_GAIN: Record<Tier, number> = { perfect: 3, great: 2, good: 1 };
@@ -589,7 +590,14 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
 
   function loop() {
     const now = performance.now();
+    const delta = lastLoopAt ? now - lastLoopAt : 0;
+    lastLoopAt = now;
     if (overdriveUntil) {
+      // Pause the Overdrive countdown while a cursed word forces you to wait it
+      // out — that's dead time you can't spend attacking, so don't burn it.
+      if (state.status === 'fighting' && wordKind === 'cursed' && state.word) {
+        overdriveUntil += delta;
+      }
       if (now >= overdriveUntil) endOverdrive();
       else els.momentumFill.style.width = `${((overdriveUntil - now) / OVERDRIVE_MS) * 100}%`;
     }
