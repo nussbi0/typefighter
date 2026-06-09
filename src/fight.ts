@@ -149,6 +149,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   let firstSpawnAt = 0;
   let correctChars = 0;
   let mistakes = 0;
+  let lastWord: string | undefined; // avoid spawning the same word twice in a row
 
   // Enemy status effects + per-class passive bookkeeping
   let poisonStacks = 0;
@@ -213,7 +214,11 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     }
     const wordCount = rollWordCount();
     const parts: string[] = [];
-    for (let i = 0; i < wordCount; i++) parts.push(randomWord(wordLevel, wordRng));
+    for (let i = 0; i < wordCount; i++) {
+      const w = randomWord(wordLevel, wordRng, lastWord);
+      parts.push(w);
+      lastWord = w;
+    }
     const phrase = parts.join(' ');
     state.word = phrase;
     state.wordCount = wordCount;

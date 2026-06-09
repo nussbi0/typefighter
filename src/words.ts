@@ -31,12 +31,19 @@ const bands: Record<Locale, string[][]> = {
 // Pick a word for the given difficulty level (1-based). The level selects a
 // window of bands [lo, hi]; as it climbs, the shortest bands drop out and the
 // longest become reachable. Levels beyond the last band stay clamped at the top.
-export function randomWord(level = 1, rng: Rng = unseededRng): string {
+export function randomWord(level = 1, rng: Rng = unseededRng, avoid?: string): string {
   const list = bands[getLocale()];
   const maxBand = list.length - 1;
   const hi = Math.min(maxBand, Math.max(0, level - 1));
   const lo = Math.max(0, hi - 2);
-  const band = lo + rng.int(hi - lo + 1);
-  const pool = list[band];
-  return pool[rng.int(pool.length)];
+  // Redraw a few times to avoid repeating the previous word — two identical
+  // words in a row read oddly. The pools are large, so this rarely loops.
+  let word = '';
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const band = lo + rng.int(hi - lo + 1);
+    const pool = list[band];
+    word = pool[rng.int(pool.length)];
+    if (word !== avoid) break;
+  }
+  return word;
 }

@@ -27,4 +27,13 @@ describe('randomWord', () => {
   it('defaults the level when called without one', () => {
     expect(randomWord().length).toBeLessThanOrEqual(4);
   });
+
+  it('never repeats the avoided (previous) word', () => {
+    let prev = randomWord(3);
+    for (let i = 0; i < 300; i++) {
+      const w = randomWord(3, undefined, prev);
+      expect(w).not.toBe(prev);
+      prev = w;
+    }
+  });
 });
