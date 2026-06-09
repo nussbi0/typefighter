@@ -202,6 +202,8 @@ const messages: Record<Locale, Messages> = {
     spell_rampage_desc: 'Rampage — bigger the lower your HP.',
     cast_label: 'Cast!',
     fizzle_label: 'Fizzled',
+    label_passive: 'Passive',
+    label_spell: 'Spell',
 
     ability_armor: 'Armor {n}',
     ability_regen: 'Regen {n}',
@@ -424,6 +426,8 @@ const messages: Record<Locale, Messages> = {
     spell_rampage_desc: 'Amoklauf — stärker, je weniger LP.',
     cast_label: 'Gewirkt!',
     fizzle_label: 'Verpufft',
+    label_passive: 'Passiv',
+    label_spell: 'Zauber',
 
     ability_armor: 'Rüstung {n}',
     ability_regen: 'Regen {n}',

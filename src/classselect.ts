@@ -36,8 +36,16 @@ export function mountClassSelect(host: HTMLElement, props: ClassSelectProps): ()
       <div class="class-avatar">${c.sprite}</div>
       <div class="class-name with-drop-cap" data-i18n="${c.nameKey}"></div>
       <div class="class-desc" data-i18n="${c.descKey}"></div>
-      <div class="class-passive" data-i18n="${c.passiveKey}"></div>
-      <div class="class-spell" data-i18n="spell_${c.spell}_desc"></div>
+      <div class="class-abilities">
+        <div class="class-ability">
+          <span class="class-ability-tag tag-passive" data-i18n="label_passive"></span>
+          <span class="class-ability-text" data-i18n="${c.passiveKey}"></span>
+        </div>
+        <div class="class-ability">
+          <span class="class-ability-tag tag-spell" data-i18n="label_spell"></span>
+          <span class="class-ability-text" data-i18n="spell_${c.spell}_desc"></span>
+        </div>
+      </div>
       <dl class="stat-list class-stats">
         ${stats
           .map(

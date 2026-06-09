@@ -2165,26 +2165,48 @@ body {
   line-height: 1.4;
 }
 
-.class-passive {
-  font-family: var(--font-body);
-  font-size: 14px;
-  color: var(--ink);
-  line-height: 1.4;
-  padding: 7px 12px;
-  background: rgba(20, 12, 4, 0.08);
+.class-abilities {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  background: rgba(20, 12, 4, 0.06);
   border: 1px solid var(--panel-border);
   border-radius: 3px;
 }
 
-.class-spell {
+.class-ability {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   font-family: var(--font-body);
   font-size: 14px;
-  color: var(--ink);
   line-height: 1.4;
-  padding: 7px 12px;
-  background: rgba(138, 92, 208, 0.1);
+  color: var(--ink);
+  text-align: left;
+}
+
+.class-ability-tag {
+  flex: 0 0 auto;
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 999px;
   border: 1px solid var(--panel-border);
-  border-radius: 3px;
+}
+
+.tag-passive {
+  color: var(--gold-dim);
+  background: rgba(212, 155, 37, 0.14);
+}
+
+.tag-spell {
+  color: #6a3fa8;
+  background: rgba(138, 92, 208, 0.14);
 }
 
 .ability-tags {
