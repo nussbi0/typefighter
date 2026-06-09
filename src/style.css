@@ -130,7 +130,7 @@ body {
   .ward,
   .curse,
   .dodge,
-  .cast,
+  .spell-cast,
   .fizzle {
     animation: damage-fade 1000ms ease forwards;
   }
@@ -1208,7 +1208,7 @@ body {
   text-shadow: 1px 1px 0 var(--parchment-1);
 }
 
-.cast,
+.spell-cast,
 .fizzle {
   position: absolute;
   top: 8px;
@@ -1220,7 +1220,7 @@ body {
   text-shadow: 1px 1px 0 var(--ink);
   animation: heal-float 1000ms ease-out forwards;
 }
-.cast {
+.spell-cast {
   font-size: 20px;
   color: #9b6cff;
 }

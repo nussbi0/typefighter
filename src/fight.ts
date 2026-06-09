@@ -477,7 +477,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
       updateShield();
     }
     if (healAmount > 0) applyHeal(healAmount);
-    showFloat('cast', t('cast_label'));
+    showFloat('spell-cast', t('cast_label'));
     gainMomentum('great');
 
     clearReachedWord();
