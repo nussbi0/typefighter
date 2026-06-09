@@ -139,6 +139,7 @@ const messages: Record<Locale, Messages> = {
     ward_block: 'Blocked!',
     curse_label: 'Cursed!',
     curse_dodged: 'Dodged',
+    overdrive: 'Overdrive!',
 
     stat_best_fight: 'Best fight',
     stat_record_wpm: 'Record WPM',
@@ -165,6 +166,7 @@ const messages: Record<Locale, Messages> = {
     howto_p4: 'Win a fight to claim a boon — pick with 1/2/3, reroll once with R.',
     howto_p5: 'Switch EN/DE and review your records (Annals) up top.',
     howto_p6: 'Pick Classic (a set gauntlet) or Endless (survive as deep as you can).',
+    howto_p7: 'Chain Perfect strikes to build Momentum — fill it to unleash Overdrive.',
     howto_begin: 'Enter the fray',
 
     classselect_title: 'Choose your hero',
@@ -344,6 +346,7 @@ const messages: Record<Locale, Messages> = {
     ward_block: 'Geblockt!',
     curse_label: 'Verflucht!',
     curse_dodged: 'Ausgewichen',
+    overdrive: 'Overdrive!',
 
     stat_best_fight: 'Bester Kampf',
     stat_record_wpm: 'Rekord WPM',
@@ -370,6 +373,7 @@ const messages: Record<Locale, Messages> = {
     howto_p4: 'Gewinne einen Kampf für eine Gabe — wähle mit 1/2/3, einmal neu mischen mit R.',
     howto_p5: 'Wechsle EN/DE und sieh deine Rekorde (Chronik) oben ein.',
     howto_p6: 'Wähle Klassisch (fester Parcours) oder Endlos (so tief wie möglich überleben).',
+    howto_p7: 'Verkette Perfekt-Treffer für Schwung — fülle ihn für den Overdrive.',
     howto_begin: 'In den Kampf',
 
     classselect_title: 'Wähle deinen Helden',

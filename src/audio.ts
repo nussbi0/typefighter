@@ -151,3 +151,11 @@ export function sfxBoon(): void {
   tone({ freq: 784, dur: 0.18, type: 'triangle', gain: 0.18 });
   tone({ freq: 1175, dur: 0.24, type: 'triangle', gain: 0.16, delay: 0.07 });
 }
+
+export function sfxOverdrive(): void {
+  const notes = [392, 523, 659, 784];
+  notes.forEach((f, i) =>
+    tone({ freq: f, dur: 0.4, type: 'sawtooth', gain: 0.16, delay: i * 0.06 }),
+  );
+  tone({ freq: 1047, dur: 0.5, type: 'triangle', gain: 0.18, delay: 0.26 });
+}

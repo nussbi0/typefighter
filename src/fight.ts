@@ -1,7 +1,16 @@
 import { t, onLocaleChange, renderTextWithDropCap } from './i18n';
 import { randomWord, rollWordKind, type WordKind } from './words';
 import { unseededRng, type Rng } from './rng';
-import { sfxEnrage, sfxHurt, sfxLose, sfxStrike, sfxType, sfxTypo, sfxWin } from './audio';
+import {
+  sfxEnrage,
+  sfxHurt,
+  sfxLose,
+  sfxOverdrive,
+  sfxStrike,
+  sfxType,
+  sfxTypo,
+  sfxWin,
+} from './audio';
 import { announce } from './a11y';
 import type { Enemy } from './enemies';
 import type { PlayerStats } from './state';
@@ -90,6 +99,11 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
         </div>
       </div>
 
+      <div class="momentum" aria-hidden="true">
+        <div class="momentum-fill"></div>
+        <span class="momentum-label"></span>
+      </div>
+
       <div class="track" aria-hidden="true">
         <span class="corner corner-tl"></span>
         <span class="corner corner-tr"></span>
@@ -124,6 +138,8 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     enemyCombatant: root.querySelector('.combatant.enemy') as HTMLElement,
     enemyAvatar: root.querySelector('.enemy-avatar') as HTMLElement,
     playerAvatar: root.querySelector('.player-avatar') as HTMLElement,
+    momentumFill: root.querySelector('.momentum-fill') as HTMLElement,
+    momentumLabel: root.querySelector('.momentum-label') as HTMLElement,
   };
 
   const state: State = {
@@ -152,6 +168,14 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   let lastWord: string | undefined; // avoid spawning the same word twice in a row
   let wordKind: WordKind = 'normal'; // the current spawn's special kind
   let shield = false; // a Ward word grants a shield that absorbs the next hit
+  let momentum = 0; // builds with strikes; fills to trigger Overdrive
+  let overdriveUntil = 0; // performance.now() timestamp; 0 = not in Overdrive
+
+  const MOMENTUM_MAX = 12;
+  const MOMENTUM_GAIN: Record<Tier, number> = { perfect: 3, great: 2, good: 1 };
+  const OVERDRIVE_MS = 6000;
+  const OVERDRIVE_DAMAGE = 1.5;
+  const OVERDRIVE_SLOW = 1.2; // incoming words take this much longer
 
   // Enemy status effects + per-class passive bookkeeping
   let poisonStacks = 0;
@@ -233,9 +257,10 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     state.wordCount = wordCount;
     state.typed = '';
     state.wordSpawnedAt = performance.now();
+    const overdriveSlow = overdriveActive() ? OVERDRIVE_SLOW : 1;
     state.wordDuration = Math.max(
       MIN_DURATION_MS,
-      phrase.length * currentMsPerChar * player.timeFactor,
+      phrase.length * currentMsPerChar * player.timeFactor * overdriveSlow,
     );
     if (firstSpawnAt === 0) firstSpawnAt = state.wordSpawnedAt;
     renderWord();
@@ -337,6 +362,8 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     if (overload) dmg *= 2;
     // Flame word — an enchanted strike for bonus damage
     if (wordKind === 'flame') dmg *= 1.5;
+    // Overdrive — every strike hits harder
+    if (overdriveActive()) dmg *= OVERDRIVE_DAMAGE;
 
     dmg = Math.round(dmg);
 
@@ -367,6 +394,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
       updateShield();
       showFloat('ward', t('ward_gained'));
     }
+    gainMomentum(tier);
     state.word = null;
     state.typed = '';
     state.wordCount = 1;
@@ -389,6 +417,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   function resolveCursed() {
     const dmg = Math.max(1, Math.round(enemy.hitDamage * 0.7));
     state.playerHP = Math.max(0, state.playerHP - dmg);
+    resetMomentum();
     sfxHurt();
     showHit('player', dmg);
     showFloat('curse', t('curse_label'));
@@ -433,8 +462,50 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     els.playerAvatar.classList.toggle('shielded', shield);
   }
 
+  function overdriveActive(): boolean {
+    return performance.now() < overdriveUntil;
+  }
+
+  function updateMomentumUI() {
+    const active = overdriveActive();
+    if (!active) els.momentumFill.style.width = `${(momentum / MOMENTUM_MAX) * 100}%`;
+    root.classList.toggle('overdrive', active);
+    els.momentumLabel.textContent = active ? t('overdrive') : '';
+  }
+
+  function startOverdrive() {
+    momentum = 0;
+    overdriveUntil = performance.now() + OVERDRIVE_MS;
+    sfxOverdrive();
+    announce(t('overdrive'));
+    updateMomentumUI();
+  }
+
+  function endOverdrive() {
+    overdriveUntil = 0;
+    momentum = 0;
+    updateMomentumUI();
+  }
+
+  function gainMomentum(tier: Tier) {
+    if (overdriveActive()) return;
+    momentum = Math.min(MOMENTUM_MAX, momentum + MOMENTUM_GAIN[tier]);
+    if (momentum >= MOMENTUM_MAX) startOverdrive();
+    else updateMomentumUI();
+  }
+
+  function resetMomentum() {
+    if (overdriveActive() || momentum === 0) return;
+    momentum = 0;
+    updateMomentumUI();
+  }
+
   function loop() {
     const now = performance.now();
+    if (overdriveUntil) {
+      if (now >= overdriveUntil) endOverdrive();
+      else els.momentumFill.style.width = `${((overdriveUntil - now) / OVERDRIVE_MS) * 100}%`;
+    }
     if (state.status === 'fighting' && state.word) {
       const progress = Math.min(1, (now - state.wordSpawnedAt) / state.wordDuration);
       positionWord(progress);
@@ -505,6 +576,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
       showFloat('guard', t('passive_guard'));
     }
     state.playerHP = Math.max(0, state.playerHP - dmg);
+    resetMomentum();
     sfxHurt();
     showHit('player', dmg);
     hitFlash(els.playerAvatar);
@@ -651,6 +723,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
 
   applyI18n();
   renderHP();
+  updateMomentumUI();
   announce(
     `${t(enemy.nameKey)} — ${t('you')} ${state.playerHP}/${player.maxHP}, ${t(enemy.nameKey)} ${state.enemyHP}/${enemy.maxHP}`,
   );
