@@ -171,7 +171,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   let momentum = 0; // builds with strikes; fills to trigger Overdrive
   let overdriveUntil = 0; // performance.now() timestamp; 0 = not in Overdrive
 
-  const MOMENTUM_MAX = 12;
+  const MOMENTUM_MAX = 10;
   const MOMENTUM_GAIN: Record<Tier, number> = { perfect: 3, great: 2, good: 1 };
   const OVERDRIVE_MS = 6000;
   const OVERDRIVE_DAMAGE = 1.5;
