@@ -168,6 +168,7 @@ const messages: Record<Locale, Messages> = {
     howto_p6: 'Pick Classic (a set gauntlet) or Endless (survive as deep as you can).',
     howto_p7: 'Chain Perfect strikes to build Momentum — fill it to unleash Overdrive.',
     howto_p8: "A glowing spell word casts your hero's ability — type it perfectly, or it fizzles.",
+    howto_p9: 'Bosses hurl whole sentences — type the full line before it crashes home.',
     howto_begin: 'Enter the fray',
 
     classselect_title: 'Choose your hero',
@@ -403,6 +404,7 @@ const messages: Record<Locale, Messages> = {
     howto_p7: 'Verkette Perfekt-Treffer für Schwung — fülle ihn für den Overdrive.',
     howto_p8:
       'Ein leuchtendes Zauberwort wirkt deine Fähigkeit — tippe es fehlerfrei, sonst verpufft es.',
+    howto_p9: 'Bosse schleudern ganze Sätze — tippe die volle Zeile, bevor sie einschlägt.',
     howto_begin: 'In den Kampf',
 
     classselect_title: 'Wähle deinen Helden',

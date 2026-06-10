@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { randomWord, rollWordKind, scrambleWord } from './words';
+import { bossPhrase, randomWord, rollWordKind, scrambleWord } from './words';
 import { getLocale } from './i18n';
 import { streamFor } from './rng';
 
@@ -45,6 +45,42 @@ describe('randomWord', () => {
       const c = randomWord(3, undefined, [a, b]);
       expect(new Set([a, b, c]).size).toBe(3);
     }
+  });
+});
+
+describe('bossPhrase', () => {
+  it('returns a multi-word sentence for each boss', () => {
+    for (const id of ['dragon', 'demon', 'kraken']) {
+      const p = bossPhrase(id, streamFor('p', id));
+      expect(p.split(' ').length).toBeGreaterThan(3);
+    }
+  });
+
+  it('is reproducible from a seeded stream', () => {
+    const a = bossPhrase('dragon', streamFor('s', 'phrase', 5));
+    const b = bossPhrase('dragon', streamFor('s', 'phrase', 5));
+    expect(a).toBe(b);
+  });
+
+  it('maps depth-scaled ids to the base pool', () => {
+    const scaled = bossPhrase('kraken@10', streamFor('s', 'phrase', 1));
+    const base = bossPhrase('kraken', streamFor('s', 'phrase', 1));
+    expect(scaled).toBe(base);
+  });
+
+  it('avoids repeating the previous sentence', () => {
+    const r = streamFor('p', 'avoid');
+    let prev = bossPhrase('demon', r);
+    for (let i = 0; i < 100; i++) {
+      const p = bossPhrase('demon', r, prev);
+      expect(p).not.toBe(prev);
+      prev = p;
+    }
+  });
+
+  it('falls back to a plain three-word volley for unknown ids', () => {
+    const p = bossPhrase('mimic', streamFor('p', 'fallback'));
+    expect(p.split(' ')).toHaveLength(3);
   });
 });
 

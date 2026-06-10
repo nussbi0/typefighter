@@ -1,5 +1,5 @@
 import { t, onLocaleChange, renderTextWithDropCap } from './i18n';
-import { randomWord, rollWordKind, scrambleWord, type WordKind } from './words';
+import { bossPhrase, randomWord, rollWordKind, scrambleWord, type WordKind } from './words';
 import { unseededRng, type Rng } from './rng';
 import {
   setMusicIntensity,
@@ -171,6 +171,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   let correctChars = 0;
   let mistakes = 0;
   let lastWord: string | undefined; // avoid spawning the same word twice in a row
+  let lastPhrase: string | undefined; // avoid repeating a boss sentence back-to-back
   let wordKind: WordKind = 'normal'; // the current spawn's special kind
   let wordAfflict: Affliction | null = null; // typing debuff on the current spawn
   let afflictLeft = 0; // words still owed to the foe's affliction
@@ -260,11 +261,21 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     wordAfflict = afflictLeft > 0 && wordKind !== 'spell' ? (enemy.afflict ?? null) : null;
     if (wordAfflict) afflictLeft -= 1;
 
+    // Combos never carry a special kind, so a multi-word boss spawn is free
+    // to become a sentence.
+    const isBossPhrase = !!enemy.isBoss && wordCount > 1;
+
     let phrase: string;
     if (wordKind === 'spell') {
       // The incantation word for this hero's signature ability.
       phrase = t(`spell_${spell}_word`);
       state.wordCount = 1;
+    } else if (isBossPhrase) {
+      // Bosses hurl themed sentences instead of word combos; a phrase counts
+      // as a full combo for damage dealt and taken.
+      phrase = bossPhrase(enemy.id, wordRng, lastPhrase);
+      lastPhrase = phrase;
+      state.wordCount = 3;
     } else {
       const parts: string[] = [];
       for (let i = 0; i < wordCount; i++) {
@@ -293,6 +304,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     clearWordKindClass();
     els.word.classList.add('active');
     els.word.classList.toggle('combo', wordCount > 1);
+    els.word.classList.toggle('phrase', isBossPhrase);
     if (wordKind !== 'normal') els.word.classList.add(`kind-${wordKind}`);
     if (wordAfflict) els.word.classList.add(`afflict-${wordAfflict}`);
     els.enemyAvatar.classList.remove('cast');

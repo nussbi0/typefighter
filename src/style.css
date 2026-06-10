@@ -969,6 +969,13 @@ body {
     inset 0 0 0 1px var(--crimson);
 }
 
+/* Boss sentences — much longer than combos, so step the type down to keep
+   the phrase box narrower than the track. */
+.word.phrase {
+  font-size: 21px;
+  letter-spacing: 0.01em;
+}
+
 .word.kind-flame {
   border-color: var(--gold-bright);
   box-shadow:

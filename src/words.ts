@@ -49,6 +49,95 @@ export function rollWordKind(rng: Rng = unseededRng): WordKind {
   return 'normal';
 }
 
+// Boss-only full sentences, themed per boss. Lowercase, letters and spaces
+// only, capped around 43 characters so the phrase box fits the track.
+// prettier-ignore
+const bossPhrases: Record<Locale, Record<string, string[]>> = {
+  en: {
+    dragon: [
+      'ancient wings blot out the pale sun',
+      'fire older than the mountains awakens',
+      'scales of iron shrug off mortal steel',
+      'the hoard glitters beneath burning wings',
+      'a roar splits the vault of heaven',
+      'cinder and ash rain upon the keep',
+      'golden eyes weigh your fleeting courage',
+      'the wyrm coils around its molten throne',
+    ],
+    demon: [
+      'the abyss whispers your true name',
+      'chains of brimstone drag souls below',
+      'every sin you buried walks again',
+      'hellfire dances upon obsidian horns',
+      'the legion kneels before its dark lord',
+      'despair is the coin of this dominion',
+      'shadows feast upon your faltering hope',
+      'the pit hungers and will be fed',
+    ],
+    kraken: [
+      'tentacles rise from the drowning deep',
+      'the tide obeys a will older than ships',
+      'salt and ruin follow in its wake',
+      'a thousand sailors sleep in its garden',
+      'the abyss stares back with lidless eyes',
+      'crushing depths swallow the proudest fleet',
+      'ink black waters churn beneath the hull',
+      'the leviathan of the trench stirs',
+    ],
+  },
+  de: {
+    dragon: [
+      'uralte schwingen verdunkeln den himmel',
+      'feuer älter als die berge erwacht',
+      'schuppen aus eisen trotzen jedem stahl',
+      'ein brüllen zerreisst das himmelszelt',
+      'asche und glut regnen auf die festung',
+      'goldene augen wägen deinen mut',
+      'der wurm umschlingt seinen glühenden hort',
+      'sein odem verwandelt knochen zu asche',
+    ],
+    demon: [
+      'der abgrund flüstert deinen wahren namen',
+      'ketten aus schwefel ziehen seelen hinab',
+      'jede begrabene sünde wandelt erneut',
+      'höllenfeuer tanzt auf obsidianhörnern',
+      'die legion kniet vor dem dunklen fürsten',
+      'verzweiflung ist die münze dieses reichs',
+      'schatten laben sich an deiner hoffnung',
+      'die grube hungert und will gefüttert sein',
+    ],
+    kraken: [
+      'tentakel steigen aus ertrunkener tiefe',
+      'die flut gehorcht einem uralten willen',
+      'salz und verderben folgen seinem sog',
+      'tausend seeleute schlafen in seinem garten',
+      'der abgrund starrt mit lidlosen augen',
+      'schwarze wasser brodeln unter dem kiel',
+      'die tiefe verschlingt die stolzeste flotte',
+      'das ungetüm des grabens erwacht',
+    ],
+  },
+};
+
+// A boss hurls a themed sentence instead of a word combo. Drawn from the
+// seeded word stream so daily runs face the same lines. Depth-scaled bosses
+// carry ids like "dragon@10" — the base id selects the pool.
+export function bossPhrase(bossId: string, rng: Rng = unseededRng, avoid?: string): string {
+  const pool = bossPhrases[getLocale()][bossId.split('@')[0]];
+  if (!pool) {
+    // Unknown boss — fall back to a plain three-word volley.
+    const parts: string[] = [];
+    for (let i = 0; i < 3; i++) parts.push(randomWord(5, rng, parts));
+    return parts.join(' ');
+  }
+  let phrase = pool[0];
+  for (let attempt = 0; attempt < 8; attempt++) {
+    phrase = pool[rng.int(pool.length)];
+    if (phrase !== avoid) break;
+  }
+  return phrase;
+}
+
 // Jumble a word's letters for the Scramble affliction — the scrambled string
 // becomes the typing target, so the player types exactly what they see. Drawn
 // from live dice (not the seeded word stream): afflictions depend on getting
