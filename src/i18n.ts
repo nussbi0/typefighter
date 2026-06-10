@@ -140,6 +140,9 @@ const messages: Record<Locale, Messages> = {
     curse_label: 'Cursed!',
     curse_dodged: 'Dodged',
     overdrive: 'Overdrive!',
+    invoke_ready: '⏎ Invoke',
+    invoke_label: 'Invoking…',
+    mana_ready: 'Mana full — press Enter to summon your spell word.',
 
     stat_best_fight: 'Best fight',
     stat_record_wpm: 'Record WPM',
@@ -169,6 +172,8 @@ const messages: Record<Locale, Messages> = {
     howto_p7: 'Chain Perfect strikes to build Momentum — fill it to unleash Overdrive.',
     howto_p8: "A glowing spell word casts your hero's ability — type it perfectly, or it fizzles.",
     howto_p9: 'Bosses hurl whole sentences — type the full line before it crashes home.',
+    howto_p10:
+      'Perfect strikes fill your mana — press Enter on a full bar to summon your spell word.',
     howto_begin: 'Enter the fray',
 
     classselect_title: 'Choose your hero',
@@ -375,6 +380,9 @@ const messages: Record<Locale, Messages> = {
     curse_label: 'Verflucht!',
     curse_dodged: 'Ausgewichen',
     overdrive: 'Overdrive!',
+    invoke_ready: '⏎ Wirken',
+    invoke_label: 'Beschwörung…',
+    mana_ready: 'Mana voll — drücke Enter, um dein Zauberwort zu rufen.',
 
     stat_best_fight: 'Bester Kampf',
     stat_record_wpm: 'Rekord WPM',
@@ -405,6 +413,8 @@ const messages: Record<Locale, Messages> = {
     howto_p8:
       'Ein leuchtendes Zauberwort wirkt deine Fähigkeit — tippe es fehlerfrei, sonst verpufft es.',
     howto_p9: 'Bosse schleudern ganze Sätze — tippe die volle Zeile, bevor sie einschlägt.',
+    howto_p10:
+      'Perfekt-Treffer füllen dein Mana — drücke Enter bei voller Leiste, um dein Zauberwort zu rufen.',
     howto_begin: 'In den Kampf',
 
     classselect_title: 'Wähle deinen Helden',

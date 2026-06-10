@@ -152,6 +152,11 @@ export function sfxBoon(): void {
   tone({ freq: 1175, dur: 0.24, type: 'triangle', gain: 0.16, delay: 0.07 });
 }
 
+export function sfxManaReady(): void {
+  tone({ freq: 988, dur: 0.16, type: 'triangle', gain: 0.14 });
+  tone({ freq: 1480, dur: 0.22, type: 'triangle', gain: 0.12, delay: 0.08 });
+}
+
 export function sfxOverdrive(): void {
   const notes = [392, 523, 659, 784];
   notes.forEach((f, i) =>

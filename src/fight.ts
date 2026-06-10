@@ -6,6 +6,7 @@ import {
   sfxEnrage,
   sfxHurt,
   sfxLose,
+  sfxManaReady,
   sfxOverdrive,
   sfxStrike,
   sfxType,
@@ -108,6 +109,14 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
         <div class="momentum-fill"></div>
         <span class="momentum-label"></span>
       </div>
+      ${
+        spell
+          ? `<div class="mana" aria-hidden="true">
+        <div class="mana-fill"></div>
+        <span class="mana-label"></span>
+      </div>`
+          : ''
+      }
 
       <div class="track" aria-hidden="true">
         <span class="corner corner-tl"></span>
@@ -145,6 +154,8 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     playerAvatar: root.querySelector('.player-avatar') as HTMLElement,
     momentumFill: root.querySelector('.momentum-fill') as HTMLElement,
     momentumLabel: root.querySelector('.momentum-label') as HTMLElement,
+    manaFill: root.querySelector('.mana-fill') as HTMLElement | null,
+    manaLabel: root.querySelector('.mana-label') as HTMLElement | null,
   };
 
   const state: State = {
@@ -177,6 +188,8 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   let afflictLeft = 0; // words still owed to the foe's affliction
   let shield = false; // a Ward word grants a shield that absorbs the next hit
   let momentum = 0; // builds with strikes; fills to trigger Overdrive
+  let mana = 0; // builds with Perfect strikes; spend it to invoke your spell
+  let invokeQueued = false; // Enter pressed on full mana — next spawn is the incantation
   let overdriveUntil = 0; // performance.now() timestamp; 0 = not in Overdrive
   let lastLoopAt = 0; // previous frame time, for the Overdrive pause delta
 
@@ -186,6 +199,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   const OVERDRIVE_DAMAGE = 1.5;
   const OVERDRIVE_SLOW = 1.2; // incoming words take this much longer
   const AFFLICT_WORDS = 3; // how many words a foe's affliction debuffs
+  const MANA_MAX = 4; // Perfect strikes needed to charge an invocation
 
   // Enemy status effects + per-class passive bookkeeping
   let poisonStacks = 0;
@@ -251,10 +265,17 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
       showFloat('heal heal-enemy', `+${enemy.regen}`);
       renderHP();
     }
-    const wordCount = rollWordCount();
+    // An invoked incantation claims the next spawn outright.
+    const invoking = invokeQueued && !!spell;
+    invokeQueued = false;
+    const wordCount = invoking ? 1 : rollWordCount();
     // Specials apply only to single-word spawns, and never the opening word.
     const isFirstSpawn = firstSpawnAt === 0;
-    wordKind = wordCount === 1 && !isFirstSpawn ? rollWordKind(wordRng) : 'normal';
+    wordKind = invoking
+      ? 'spell'
+      : wordCount === 1 && !isFirstSpawn
+        ? rollWordKind(wordRng)
+        : 'normal';
     if (wordKind === 'spell' && !spell) wordKind = 'normal';
     // Afflictions debuff the next few words after the foe lands a hit —
     // except incantations, which must stay readable to be castable.
@@ -338,8 +359,17 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   }
 
   function onKeyDown(e: KeyboardEvent) {
-    if (state.status !== 'fighting' || !state.word) return;
+    if (state.status !== 'fighting') return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+    // Enter spends a full mana charge to summon the incantation — allowed
+    // between words too, so the invocation isn't gated on an active spawn.
+    if (e.key === 'Enter') {
+      tryInvoke();
+      e.preventDefault();
+      return;
+    }
+    if (!state.word) return;
 
     if (e.key === 'Backspace') {
       if (state.typed.length > 0) {
@@ -443,6 +473,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
       showFloat('ward', t('ward_gained'));
     }
     gainMomentum(tier);
+    if (tier === 'perfect') gainMana();
     state.word = null;
     state.typed = '';
     state.wordCount = 1;
@@ -613,6 +644,34 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     if (overdriveActive() || momentum === 0) return;
     momentum = 0;
     updateMomentumUI();
+  }
+
+  // Mana is a banked resource, not a streak — unlike momentum it survives
+  // taking hits and is only spent by invoking.
+  function gainMana() {
+    if (!spell || invokeQueued || mana >= MANA_MAX) return;
+    mana += 1;
+    if (mana === MANA_MAX) {
+      sfxManaReady();
+      announce(t('mana_ready'));
+    }
+    updateManaUI();
+  }
+
+  function tryInvoke() {
+    if (!spell || invokeQueued || mana < MANA_MAX) return;
+    mana = 0;
+    invokeQueued = true;
+    showFloat('spell-cast', t('invoke_label'));
+    updateManaUI();
+  }
+
+  function updateManaUI() {
+    if (!els.manaFill || !els.manaLabel) return;
+    els.manaFill.style.width = `${(mana / MANA_MAX) * 100}%`;
+    const ready = mana >= MANA_MAX;
+    root.classList.toggle('mana-ready', ready);
+    els.manaLabel.textContent = ready ? t('invoke_ready') : '';
   }
 
   function loop() {
@@ -864,6 +923,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   applyI18n();
   renderHP();
   updateMomentumUI();
+  updateManaUI();
   startMusic();
   announce(
     `${t(enemy.nameKey)} — ${t('you')} ${state.playerHP}/${player.maxHP}, ${t(enemy.nameKey)} ${state.enemyHP}/${enemy.maxHP}`,
