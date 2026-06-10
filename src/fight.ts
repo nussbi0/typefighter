@@ -188,7 +188,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   let afflictLeft = 0; // words still owed to the foe's affliction
   let shield = false; // a Ward word grants a shield that absorbs the next hit
   let momentum = 0; // builds with strikes; fills to trigger Overdrive
-  let mana = 0; // builds with Perfect strikes; spend it to invoke your spell
+  let mana = player.mana ?? 0; // banked run resource, carried in from earlier fights
   let invokeQueued = false; // Enter pressed on full mana — next spawn is the incantation
   let overdriveUntil = 0; // performance.now() timestamp; 0 = not in Overdrive
   let lastLoopAt = 0; // previous frame time, for the Overdrive pause delta
@@ -199,7 +199,8 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   const OVERDRIVE_DAMAGE = 1.5;
   const OVERDRIVE_SLOW = 1.2; // incoming words take this much longer
   const AFFLICT_WORDS = 3; // how many words a foe's affliction debuffs
-  const MANA_MAX = 4; // Perfect strikes needed to charge an invocation
+  const MANA_MAX = 6; // 3 Perfects, 6 Greats, or any mix charges an invocation
+  const MANA_GAIN: Record<Tier, number> = { perfect: 2, great: 1, good: 0 };
 
   // Enemy status effects + per-class passive bookkeeping
   let poisonStacks = 0;
@@ -473,7 +474,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
       showFloat('ward', t('ward_gained'));
     }
     gainMomentum(tier);
-    if (tier === 'perfect') gainMana();
+    gainMana(tier);
     state.word = null;
     state.typed = '';
     state.wordCount = 1;
@@ -647,10 +648,12 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   }
 
   // Mana is a banked resource, not a streak — unlike momentum it survives
-  // taking hits and is only spent by invoking.
-  function gainMana() {
-    if (!spell || invokeQueued || mana >= MANA_MAX) return;
-    mana += 1;
+  // taking hits, persists across fights, and is only spent by invoking.
+  function gainMana(tier: Tier) {
+    const gain = MANA_GAIN[tier];
+    if (!spell || invokeQueued || mana >= MANA_MAX || gain === 0) return;
+    mana = Math.min(MANA_MAX, mana + gain);
+    player.mana = mana;
     if (mana === MANA_MAX) {
       sfxManaReady();
       announce(t('mana_ready'));
@@ -661,6 +664,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   function tryInvoke() {
     if (!spell || invokeQueued || mana < MANA_MAX) return;
     mana = 0;
+    player.mana = 0;
     invokeQueued = true;
     showFloat('spell-cast', t('invoke_label'));
     updateManaUI();

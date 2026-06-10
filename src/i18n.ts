@@ -173,7 +173,7 @@ const messages: Record<Locale, Messages> = {
     howto_p8: "A glowing spell word casts your hero's ability — type it perfectly, or it fizzles.",
     howto_p9: 'Bosses hurl whole sentences — type the full line before it crashes home.',
     howto_p10:
-      'Perfect strikes fill your mana — press Enter on a full bar to summon your spell word.',
+      'Great and Perfect strikes fill your mana (kept between fights) — press Enter on a full bar to summon your spell word.',
     howto_begin: 'Enter the fray',
 
     classselect_title: 'Choose your hero',
@@ -414,7 +414,7 @@ const messages: Record<Locale, Messages> = {
       'Ein leuchtendes Zauberwort wirkt deine Fähigkeit — tippe es fehlerfrei, sonst verpufft es.',
     howto_p9: 'Bosse schleudern ganze Sätze — tippe die volle Zeile, bevor sie einschlägt.',
     howto_p10:
-      'Perfekt-Treffer füllen dein Mana — drücke Enter bei voller Leiste, um dein Zauberwort zu rufen.',
+      'Stark- und Perfekt-Treffer füllen dein Mana (bleibt zwischen Kämpfen erhalten) — drücke Enter bei voller Leiste, um dein Zauberwort zu rufen.',
     howto_begin: 'In den Kampf',
 
     classselect_title: 'Wähle deinen Helden',

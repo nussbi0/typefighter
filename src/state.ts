@@ -16,6 +16,9 @@ export interface PlayerStats {
   comboBonus: number;
   timeFactor: number;
   regen: number;
+  // Banked incantation charge — persists across fights within a run.
+  // Optional so runs saved before mana existed still resume cleanly.
+  mana?: number;
 }
 
 export type Modifier = 'refuge' | 'empower';
@@ -48,6 +51,7 @@ function baseStats(): PlayerStats {
     comboBonus: 0,
     timeFactor: 1.0,
     regen: 0,
+    mana: 0,
   };
 }
 
