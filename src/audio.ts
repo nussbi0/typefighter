@@ -159,3 +159,98 @@ export function sfxOverdrive(): void {
   );
   tone({ freq: 1047, dur: 0.5, type: 'triangle', gain: 0.18, delay: 0.26 });
 }
+
+// --- Adaptive background music ----------------------------------------------
+// A gentle procedural loop (minor-key bass + arpeggio) whose tempo and density
+// rise with the fight's intensity (momentum / Overdrive). No asset files.
+
+let musicGain: GainNode | null = null;
+let musicTimer: number | null = null;
+let musicTarget = 0.2; // desired intensity 0..1, set by the fight
+let musicLevel = 0.2; // smoothed intensity
+let nextNoteTime = 0;
+let beatIndex = 0;
+
+const MUSIC_BUS = 0.4;
+
+interface Chord {
+  bass: number;
+  tones: number[];
+}
+// Am – F – C – G, one chord per bar (8 eighth-notes each).
+const PROGRESSION: Chord[] = [
+  { bass: 110.0, tones: [220.0, 261.63, 329.63, 261.63] },
+  { bass: 87.31, tones: [174.61, 220.0, 261.63, 220.0] },
+  { bass: 130.81, tones: [261.63, 329.63, 392.0, 329.63] },
+  { bass: 98.0, tones: [196.0, 246.94, 293.66, 246.94] },
+];
+
+function musicTone(freq: number, time: number, dur: number, gain: number, type: OscillatorType) {
+  if (!ctx || !musicGain) return;
+  const osc = ctx.createOscillator();
+  const g = ctx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  g.gain.setValueAtTime(0.0001, time);
+  g.gain.exponentialRampToValueAtTime(gain, time + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001, time + dur);
+  osc.connect(g).connect(musicGain);
+  osc.start(time);
+  osc.stop(time + dur + 0.05);
+}
+
+function scheduleBeat(beat: number, time: number, level: number) {
+  const chord = PROGRESSION[Math.floor(beat / 8) % PROGRESSION.length];
+  const pos = beat % 8;
+  if (pos === 0 || pos === 4) musicTone(chord.bass, time, 0.55, 0.13, 'triangle');
+  if (level > 0.3) {
+    const t = chord.tones[pos % chord.tones.length];
+    musicTone(t, time, 0.18, 0.035 + level * 0.06, 'triangle');
+  }
+  if (level > 0.72 && pos === 0) musicTone(chord.tones[2] * 2, time, 0.32, 0.05, 'sine');
+}
+
+function musicScheduler() {
+  if (!ctx || !musicGain) return;
+  const silent = isMuted();
+  musicGain.gain.setTargetAtTime(silent ? 0 : MUSIC_BUS, ctx.currentTime, 0.25);
+  while (nextNoteTime < ctx.currentTime + 0.12) {
+    musicLevel += (musicTarget - musicLevel) * 0.06;
+    const bpm = 86 + musicLevel * 70; // 86..156
+    const eighth = 60 / bpm / 2;
+    if (!silent) scheduleBeat(beatIndex, nextNoteTime, musicLevel);
+    nextNoteTime += eighth;
+    beatIndex += 1;
+  }
+}
+
+export function startMusic(): void {
+  const c = audio(); // respects mute and ensures the ctx (within a gesture)
+  if (!c) return;
+  if (!musicGain) {
+    musicGain = c.createGain();
+    musicGain.gain.value = 0;
+    musicGain.connect(c.destination);
+  }
+  if (musicTimer != null) return;
+  musicTarget = 0.2;
+  musicLevel = 0.2;
+  nextNoteTime = c.currentTime + 0.06;
+  beatIndex = 0;
+  musicTimer = window.setInterval(musicScheduler, 25);
+}
+
+export function stopMusic(): void {
+  if (musicTimer != null) {
+    clearInterval(musicTimer);
+    musicTimer = null;
+  }
+  if (ctx && musicGain) {
+    musicGain.gain.cancelScheduledValues(ctx.currentTime);
+    musicGain.gain.setTargetAtTime(0, ctx.currentTime, 0.2);
+  }
+}
+
+export function setMusicIntensity(value: number): void {
+  musicTarget = Math.max(0, Math.min(1, value));
+}

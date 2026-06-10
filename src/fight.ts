@@ -2,6 +2,7 @@ import { t, onLocaleChange, renderTextWithDropCap } from './i18n';
 import { randomWord, rollWordKind, type WordKind } from './words';
 import { unseededRng, type Rng } from './rng';
 import {
+  setMusicIntensity,
   sfxEnrage,
   sfxHurt,
   sfxLose,
@@ -10,6 +11,8 @@ import {
   sfxType,
   sfxTypo,
   sfxWin,
+  startMusic,
+  stopMusic,
 } from './audio';
 import { announce } from './a11y';
 import type { Enemy } from './enemies';
@@ -601,6 +604,9 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
       if (now >= overdriveUntil) endOverdrive();
       else els.momentumFill.style.width = `${((overdriveUntil - now) / OVERDRIVE_MS) * 100}%`;
     }
+    if (state.status === 'fighting') {
+      setMusicIntensity(overdriveActive() ? 1 : 0.2 + 0.8 * (momentum / MOMENTUM_MAX));
+    }
     if (state.status === 'fighting' && state.word) {
       const progress = Math.min(1, (now - state.wordSpawnedAt) / state.wordDuration);
       positionWord(progress);
@@ -826,6 +832,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   applyI18n();
   renderHP();
   updateMomentumUI();
+  startMusic();
   announce(
     `${t(enemy.nameKey)} — ${t('you')} ${state.playerHP}/${player.maxHP}, ${t(enemy.nameKey)} ${state.enemyHP}/${enemy.maxHP}`,
   );
@@ -837,6 +844,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     cancelSpawn();
     if (rafHandle != null) cancelAnimationFrame(rafHandle);
     document.removeEventListener('keydown', onKeyDown);
+    stopMusic();
     offLocale();
   };
 }
