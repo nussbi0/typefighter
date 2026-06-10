@@ -49,6 +49,18 @@ export function rollWordKind(rng: Rng = unseededRng): WordKind {
   return 'normal';
 }
 
+// Jumble a word's letters for the Scramble affliction — the scrambled string
+// becomes the typing target, so the player types exactly what they see. Drawn
+// from live dice (not the seeded word stream): afflictions depend on getting
+// hit, and consuming seeded draws here would desync daily word sequences.
+export function scrambleWord(word: string, rng: Rng = unseededRng): string {
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const out = rng.shuffle([...word]).join('');
+    if (out !== word) return out;
+  }
+  return word;
+}
+
 export function randomWord(
   level = 1,
   rng: Rng = unseededRng,

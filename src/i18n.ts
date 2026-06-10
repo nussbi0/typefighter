@@ -213,6 +213,17 @@ const messages: Record<Locale, Messages> = {
     ability_regen_tip: 'Regen — the foe heals between its attacks.',
     ability_lifesteal_tip: 'Lifesteal — the foe heals when it strikes you.',
     ability_poison_tip: 'Poison — its hits leave venom that wounds you over time.',
+    ability_scramble: 'Scramble',
+    ability_fog: 'Fog',
+    ability_mirror: 'Mirror',
+    ability_scramble_tip:
+      'Scramble — its hits jumble the letters of your next few words; type them as shown.',
+    ability_fog_tip:
+      'Fog — its hits shroud your next few words; only the next letter shows through.',
+    ability_mirror_tip: 'Mirror — its hits flip your next few words back-to-front.',
+    afflict_scramble: 'Scrambled!',
+    afflict_fog: 'Fogged!',
+    afflict_mirror: 'Mirrored!',
     howto_abilities_title: 'Foes & their tricks',
     howto_arcane_title: 'Arcane words',
     arcane_flame: 'Flame (gold) — type it for a stronger strike.',
@@ -437,6 +448,18 @@ const messages: Record<Locale, Messages> = {
     ability_regen_tip: 'Regen — der Gegner heilt sich zwischen seinen Angriffen.',
     ability_lifesteal_tip: 'Lebensraub — der Gegner heilt sich, wenn er dich trifft.',
     ability_poison_tip: 'Gift — seine Treffer verletzen dich über Zeit weiter.',
+    ability_scramble: 'Wirrnis',
+    ability_fog: 'Nebel',
+    ability_mirror: 'Spiegel',
+    ability_scramble_tip:
+      'Wirrnis — seine Treffer verwürfeln die Buchstaben deiner nächsten Wörter; tippe sie wie angezeigt.',
+    ability_fog_tip:
+      'Nebel — seine Treffer vernebeln deine nächsten Wörter; nur der nächste Buchstabe bleibt sichtbar.',
+    ability_mirror_tip:
+      'Spiegel — seine Treffer spiegeln deine nächsten Wörter von hinten nach vorn.',
+    afflict_scramble: 'Verwürfelt!',
+    afflict_fog: 'Vernebelt!',
+    afflict_mirror: 'Gespiegelt!',
     howto_abilities_title: 'Gegner & ihre Tücken',
     howto_arcane_title: 'Arkane Wörter',
     arcane_flame: 'Flamme (gold) — tippe es für einen stärkeren Schlag.',

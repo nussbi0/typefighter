@@ -89,6 +89,21 @@ describe('enemyAbilities', () => {
     );
     expect(enemyAbilities(findEnemy('goblin'))).toHaveLength(0);
   });
+
+  it('lists each affliction as a tag', () => {
+    expect(enemyAbilities(findEnemy('sorcerer')).some((l) => l.key === 'ability_scramble')).toBe(
+      true,
+    );
+    expect(enemyAbilities(findEnemy('ghost')).some((l) => l.key === 'ability_fog')).toBe(true);
+    expect(enemyAbilities(findEnemy('vampire')).some((l) => l.key === 'ability_mirror')).toBe(true);
+  });
+});
+
+describe('afflictions', () => {
+  it('survive depth scaling unchanged', () => {
+    expect(scaleEnemy(findEnemy('sorcerer'), 9).afflict).toBe('scramble');
+    expect(scaleEnemy(findEnemy('goblin'), 9).afflict).toBeUndefined();
+  });
 });
 
 describe('endlessCandidates', () => {

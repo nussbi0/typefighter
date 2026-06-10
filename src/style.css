@@ -130,6 +130,7 @@ body {
   .ward,
   .curse,
   .dodge,
+  .afflict,
   .spell-cast,
   .fizzle {
     animation: damage-fade 1000ms ease forwards;
@@ -1032,6 +1033,20 @@ body {
   background: rgba(138, 92, 208, 0.45);
 }
 
+/* Afflicted words — a dashed violet outline marks the debuff (essential for
+   Scramble, where the jumbled word could otherwise read as a glitch). */
+.word.afflict-scramble,
+.word.afflict-fog,
+.word.afflict-mirror {
+  outline: 2px dashed #8a79c9;
+  outline-offset: 3px;
+}
+
+.word.afflict-fog .rest {
+  filter: blur(6px);
+  opacity: 0.65;
+}
+
 .avatar.shielded {
   box-shadow:
     0 0 0 3px rgba(74, 144, 217, 0.7),
@@ -1185,7 +1200,8 @@ body {
 
 .ward,
 .curse,
-.dodge {
+.dodge,
+.afflict {
   position: absolute;
   top: 8px;
   left: 28px;
@@ -1206,6 +1222,9 @@ body {
 .dodge {
   color: var(--ink-muted);
   text-shadow: 1px 1px 0 var(--parchment-1);
+}
+.afflict {
+  color: #8a79c9;
 }
 
 .spell-cast,

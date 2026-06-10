@@ -1,5 +1,5 @@
 import { t, onLocaleChange, renderTextWithDropCap } from './i18n';
-import { randomWord, rollWordKind, type WordKind } from './words';
+import { randomWord, rollWordKind, scrambleWord, type WordKind } from './words';
 import { unseededRng, type Rng } from './rng';
 import {
   setMusicIntensity,
@@ -15,7 +15,7 @@ import {
   stopMusic,
 } from './audio';
 import { announce } from './a11y';
-import type { Enemy } from './enemies';
+import type { Affliction, Enemy } from './enemies';
 import type { PlayerStats } from './state';
 import type { FightOutcome } from './stats';
 
@@ -172,6 +172,8 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   let mistakes = 0;
   let lastWord: string | undefined; // avoid spawning the same word twice in a row
   let wordKind: WordKind = 'normal'; // the current spawn's special kind
+  let wordAfflict: Affliction | null = null; // typing debuff on the current spawn
+  let afflictLeft = 0; // words still owed to the foe's affliction
   let shield = false; // a Ward word grants a shield that absorbs the next hit
   let momentum = 0; // builds with strikes; fills to trigger Overdrive
   let overdriveUntil = 0; // performance.now() timestamp; 0 = not in Overdrive
@@ -182,6 +184,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   const OVERDRIVE_MS = 6000;
   const OVERDRIVE_DAMAGE = 1.5;
   const OVERDRIVE_SLOW = 1.2; // incoming words take this much longer
+  const AFFLICT_WORDS = 3; // how many words a foe's affliction debuffs
 
   // Enemy status effects + per-class passive bookkeeping
   let poisonStacks = 0;
@@ -213,6 +216,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
       state.typed = '';
       state.wordCount = 1;
       wordKind = 'normal';
+      wordAfflict = null;
       els.word.classList.remove('active', 'combo');
       clearWordKindClass();
       renderWord();
@@ -251,6 +255,10 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     const isFirstSpawn = firstSpawnAt === 0;
     wordKind = wordCount === 1 && !isFirstSpawn ? rollWordKind(wordRng) : 'normal';
     if (wordKind === 'spell' && !spell) wordKind = 'normal';
+    // Afflictions debuff the next few words after the foe lands a hit —
+    // except incantations, which must stay readable to be castable.
+    wordAfflict = afflictLeft > 0 && wordKind !== 'spell' ? (enemy.afflict ?? null) : null;
+    if (wordAfflict) afflictLeft -= 1;
 
     let phrase: string;
     if (wordKind === 'spell') {
@@ -267,7 +275,9 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
         parts.push(w);
         lastWord = w;
       }
-      phrase = parts.join(' ');
+      // A scrambled spawn's jumbled letters ARE the typing target — type what
+      // you see. Live dice, so the seeded word stream stays in sync.
+      phrase = (wordAfflict === 'scramble' ? parts.map((w) => scrambleWord(w)) : parts).join(' ');
       state.wordCount = wordCount;
     }
     state.word = phrase;
@@ -284,6 +294,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     els.word.classList.add('active');
     els.word.classList.toggle('combo', wordCount > 1);
     if (wordKind !== 'normal') els.word.classList.add(`kind-${wordKind}`);
+    if (wordAfflict) els.word.classList.add(`afflict-${wordAfflict}`);
     els.enemyAvatar.classList.remove('cast');
     void els.enemyAvatar.offsetWidth;
     els.enemyAvatar.classList.add('cast');
@@ -547,6 +558,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
 
   function clearWordKindClass() {
     els.word.classList.remove('kind-flame', 'kind-ward', 'kind-cursed', 'kind-spell');
+    els.word.classList.remove('afflict-scramble', 'afflict-fog', 'afflict-mirror');
   }
 
   function updateShield() {
@@ -636,7 +648,8 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     const wordW = els.word.clientWidth;
     const maxOffset = Math.max(0, trackW - wordW - 28);
     const x = -maxOffset * progress;
-    els.word.style.transform = `translate(${x}px, -50%)`;
+    const mirror = wordAfflict === 'mirror' ? ' scaleX(-1)' : '';
+    els.word.style.transform = `translate(${x}px, -50%)${mirror}`;
   }
 
   function clearReachedWord() {
@@ -698,10 +711,17 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
         showFloat('heal heal-enemy', `+${healed}`);
       }
     }
-    // Spider/Wraith — poison: lingering damage over time
+    // Spider — poison: lingering damage over time
     if (enemy.poison) {
       if (poisonStacks === 0) lastPoisonTick = performance.now();
       poisonStacks += enemy.poison;
+    }
+    // Sorcerer/Wraith/Vampire — affliction: the blow muddles your next words
+    if (enemy.afflict) {
+      afflictLeft = AFFLICT_WORDS;
+      const label = t(`afflict_${enemy.afflict}`);
+      showFloat('afflict', label);
+      announce(label);
     }
     state.word = null;
     state.typed = '';

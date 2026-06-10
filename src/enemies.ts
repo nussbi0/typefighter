@@ -1,5 +1,11 @@
 import { unseededRng, type Rng } from './rng';
 
+// Typing debuffs a foe's landed hit inflicts on your next few words:
+// scramble — letters arrive jumbled (type them as shown);
+// fog — only the next letter shows, the rest is shrouded;
+// mirror — the word is displayed flipped back-to-front.
+export type Affliction = 'scramble' | 'fog' | 'mirror';
+
 export interface PhaseChange {
   triggerHPRatio: number;
   msPerChar: number;
@@ -25,6 +31,7 @@ export interface Enemy {
   regen?: number; // HP the foe heals each time it spawns a word
   lifesteal?: number; // fraction of damage dealt to you that heals the foe
   poison?: number; // stacks applied when it hits you (ticking damage over time)
+  afflict?: Affliction; // typing debuff its hits inflict for a few words
 }
 
 export const roster: Enemy[] = [
@@ -141,6 +148,7 @@ export const roster: Enemy[] = [
     comboChance: 0.5,
     comboMaxWords: 3,
     tier: 4,
+    afflict: 'scramble',
   },
   {
     id: 'ghost',
@@ -153,7 +161,7 @@ export const roster: Enemy[] = [
     comboChance: 0.6,
     comboMaxWords: 3,
     tier: 4,
-    poison: 4,
+    afflict: 'fog',
   },
   {
     id: 'golem',
@@ -180,6 +188,7 @@ export const roster: Enemy[] = [
     comboMaxWords: 3,
     tier: 4,
     lifesteal: 0.5,
+    afflict: 'mirror',
   },
   // Bosses
   {
@@ -307,6 +316,8 @@ export function enemyAbilities(enemy: Enemy): AbilityLine[] {
     lines.push({ key: 'ability_regen', tip: 'ability_regen_tip', value: enemy.regen });
   if (enemy.lifesteal) lines.push({ key: 'ability_lifesteal', tip: 'ability_lifesteal_tip' });
   if (enemy.poison) lines.push({ key: 'ability_poison', tip: 'ability_poison_tip' });
+  if (enemy.afflict)
+    lines.push({ key: `ability_${enemy.afflict}`, tip: `ability_${enemy.afflict}_tip` });
   return lines;
 }
 

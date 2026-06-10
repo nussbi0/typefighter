@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { randomWord, rollWordKind } from './words';
+import { randomWord, rollWordKind, scrambleWord } from './words';
 import { getLocale } from './i18n';
 import { streamFor } from './rng';
 
@@ -45,6 +45,34 @@ describe('randomWord', () => {
       const c = randomWord(3, undefined, [a, b]);
       expect(new Set([a, b, c]).size).toBe(3);
     }
+  });
+});
+
+describe('scrambleWord', () => {
+  it('preserves the exact multiset of letters', () => {
+    const r = streamFor('scramble', 1);
+    for (let i = 0; i < 100; i++) {
+      const word = randomWord(4);
+      const out = scrambleWord(word, r);
+      expect([...out].sort()).toEqual([...word].sort());
+    }
+  });
+
+  it('differs from the original for a typical word', () => {
+    const r = streamFor('scramble', 2);
+    for (let i = 0; i < 100; i++) {
+      expect(scrambleWord('dragon', r)).not.toBe('dragon');
+    }
+  });
+
+  it('returns the word unchanged when no other order exists', () => {
+    expect(scrambleWord('aaa', streamFor('scramble', 3))).toBe('aaa');
+  });
+
+  it('is reproducible from a seeded stream', () => {
+    const a = scrambleWord('labyrinth', streamFor('s', 'afflict', 7));
+    const b = scrambleWord('labyrinth', streamFor('s', 'afflict', 7));
+    expect(a).toBe(b);
   });
 });
 
