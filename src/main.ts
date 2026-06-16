@@ -12,6 +12,8 @@ import { mountEncounter } from './encounter';
 import { mountLevelUp } from './levelup';
 import { mountRunOver } from './runover';
 import { mountBranch } from './branch';
+import { mountEventScreen } from './eventscreen';
+import { pickEvent, type StoryEvent } from './events';
 import { mountClassSelect } from './classselect';
 import { mountModeSelect, type ModeChoice } from './modeselect';
 import { mountCustomSeed } from './customseed';
@@ -417,10 +419,37 @@ function afterLevelUp(run: RunState) {
     showEncounter(run);
     return;
   }
+  const event = eventFor(run);
+  if (event) {
+    showEvent(run, event);
+    return;
+  }
   enterBranch(run);
 }
 
+const EVENT_CHANCE = 0.3;
 const ELITE_CHANCE = 0.25;
+
+// The seeded '?' interlude (if any) preceding the next branch. Returns null on
+// the run's final fight or when the seeded roll declines.
+function eventFor(run: RunState): StoryEvent | null {
+  const nextFightNumber = run.fightNumber + 1;
+  if (run.mode === 'classic' && nextFightNumber === RUN_LENGTH) return null;
+  const rng = streamFor(run.seed, 'event', nextFightNumber);
+  if (rng.next() >= EVENT_CHANCE) return null;
+  return pickEvent(rng);
+}
+
+function showEvent(run: RunState, event: StoryEvent) {
+  persist(run, 'event');
+  show((host) =>
+    mountEventScreen(host, {
+      event,
+      player: run.player,
+      onDone: () => enterBranch(run),
+    }),
+  );
+}
 
 function enterBranch(run: RunState) {
   const nextFightNumber = run.fightNumber + 1;
@@ -507,7 +536,11 @@ function resumeRun(saved: SavedRun) {
   run.daily = run.daily ?? false;
   if (saved.phase === 'levelup') showLevelUp(run);
   else if (saved.phase === 'branch') enterBranch(run);
-  else showEncounter(run);
+  else if (saved.phase === 'event') {
+    const event = eventFor(run);
+    if (event) showEvent(run, event);
+    else enterBranch(run);
+  } else showEncounter(run);
 }
 
 function showResumePrompt(saved: SavedRun) {

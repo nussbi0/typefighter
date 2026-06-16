@@ -6,7 +6,7 @@ import type { RunState } from './state';
 
 const KEY = 'typefighter.run.v1';
 
-export type RunPhase = 'encounter' | 'levelup' | 'branch';
+export type RunPhase = 'encounter' | 'levelup' | 'branch' | 'event';
 
 export interface SavedRun {
   phase: RunPhase;
