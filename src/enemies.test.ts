@@ -70,6 +70,20 @@ describe('scaleEnemy', () => {
     expect(scaled.phaseChange!.msPerChar).toBeLessThan(dragon.phaseChange!.msPerChar);
   });
 
+  it('scales super-linearly at depth — late foes outgrow a linear ramp', () => {
+    const base = findEnemy('goblin');
+    const d10 = scaleEnemy(base, 10).maxHP;
+    const d20 = scaleEnemy(base, 20).maxHP;
+    // With acceleration, doubling the depth more than doubles the HP.
+    expect(d20).toBeGreaterThan(d10 * 2);
+  });
+
+  it('throws longer combos in the deep endless', () => {
+    const goblin = findEnemy('goblin'); // base comboMaxWords 2
+    expect(scaleEnemy(goblin, 4).comboMaxWords).toBe(goblin.comboMaxWords);
+    expect(scaleEnemy(goblin, 16).comboMaxWords).toBe(3);
+  });
+
   it('scales ability values with depth', () => {
     const golem = findEnemy('golem'); // has armor
     const scaled = scaleEnemy(golem, 9);

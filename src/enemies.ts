@@ -371,14 +371,24 @@ function scalePhase(phase: PhaseChange, speedScale: number, comboAdd: number): P
   };
 }
 
+// Depth past which scaling stops being a gentle linear ramp and starts
+// accelerating — by then the player's boons/sets/relics compound fast, so foes
+// must grow super-linearly to keep an endless run from going limp.
+const ENDLESS_ACCEL_DEPTH = 6;
+
 // Produce a depth-scaled copy of a base enemy: tougher, faster, and more
-// combo-prone the deeper the endless run goes.
+// combo-prone the deeper the endless run goes. Early depths grow linearly;
+// past ENDLESS_ACCEL_DEPTH a quadratic term ramps the pressure hard so a long
+// run eventually overwhelms even a stacked build.
 export function scaleEnemy(base: Enemy, depth: number): Enemy {
   const steps = depth - 1;
-  const hpScale = 1 + 0.2 * steps;
-  const dmgScale = 1 + 0.1 * steps;
-  const speedScale = Math.max(0.5, 1 - 0.02 * steps);
-  const comboAdd = Math.min(0.4, 0.015 * steps);
+  const accel = Math.max(0, steps - (ENDLESS_ACCEL_DEPTH - 1)); // extra steps past the ramp point
+  const hpScale = 1 + 0.2 * steps + 0.03 * accel * accel;
+  const dmgScale = 1 + 0.1 * steps + 0.009 * accel * accel;
+  const speedScale = Math.max(0.34, 1 - 0.022 * steps - 0.003 * accel * accel);
+  const comboAdd = Math.min(0.55, 0.015 * steps + 0.01 * accel);
+  // Deep foes throw longer combos even if their base only managed two.
+  const comboMaxWords = steps >= 12 ? Math.max(base.comboMaxWords, 3) : base.comboMaxWords;
   return {
     ...base,
     id: `${base.id}@${depth}`,
@@ -386,7 +396,8 @@ export function scaleEnemy(base: Enemy, depth: number): Enemy {
     hitDamage: Math.round(base.hitDamage * dmgScale),
     msPerChar: Math.round(base.msPerChar * speedScale),
     spawnDelayMs: Math.round(base.spawnDelayMs * speedScale),
-    comboChance: Math.min(0.9, base.comboChance + comboAdd),
+    comboChance: Math.min(0.92, base.comboChance + comboAdd),
+    comboMaxWords,
     phaseChange: base.phaseChange ? scalePhase(base.phaseChange, speedScale, comboAdd) : undefined,
     armor: base.armor != null ? Math.round(base.armor * dmgScale) : undefined,
     regen: base.regen != null ? Math.round(base.regen * hpScale) : undefined,
