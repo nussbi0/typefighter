@@ -166,6 +166,82 @@ body {
   background: linear-gradient(180deg, rgba(20, 12, 4, 0.12), transparent);
 }
 
+/* Persistent hero build strip — a thin, glanceable reference kept out of the
+   word track's reading lane. */
+.build-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  padding: 7px 36px;
+  border-bottom: 1px solid var(--panel-border);
+  background: rgba(20, 12, 4, 0.07);
+  font-family: var(--font-display);
+  font-size: 12px;
+  color: var(--ink-light);
+}
+.build-bar[hidden] {
+  display: none;
+}
+
+.bb-depth {
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--crimson);
+}
+
+.bb-stats {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+}
+
+.bb-chip {
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  color: var(--ink-muted);
+}
+.bb-chip b {
+  font-weight: 700;
+  color: var(--ink-light);
+  margin-right: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.bb-grow {
+  flex: 1 1 auto;
+}
+
+.bb-sub {
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #6a3fa8;
+}
+
+.bb-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  line-height: 1;
+}
+.bb-set {
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--school, var(--gold-dim)) 60%, transparent));
+}
+
+@media (max-width: 560px) {
+  .build-bar {
+    padding: 6px 18px;
+    font-size: 11px;
+  }
+  .bb-grow {
+    display: none;
+  }
+}
+
 .brand-lockup {
   display: inline-flex;
   align-items: center;
@@ -462,8 +538,22 @@ body {
 }
 
 .howto-card {
-  max-width: 560px;
+  max-width: 860px;
   gap: 18px;
+}
+
+/* The guide has grown long — flow its lists into two columns on wide screens
+   so the extra width is used and line length stays readable. */
+@media (min-width: 700px) {
+  .howto-card .howto-list {
+    display: block;
+    columns: 2;
+    column-gap: 36px;
+  }
+  .howto-card .howto-list li {
+    break-inside: avoid;
+    margin-bottom: 11px;
+  }
 }
 
 .howto-tagline {

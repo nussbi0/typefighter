@@ -15,20 +15,22 @@ import { mountBranch } from './branch';
 import { mountEventScreen } from './eventscreen';
 import { pickEvent, type StoryEvent } from './events';
 import { mountRelicDraft } from './relicdraft';
-import { applyRelic, drawRelics, relicEffects } from './relics';
+import { applyRelic, drawRelics, findRelic, relicEffects } from './relics';
 import { mountClassSelect } from './classselect';
 import { mountModeSelect, type ModeChoice } from './modeselect';
 import { mountCustomSeed } from './customseed';
 import { mountResumePrompt } from './resumeprompt';
 import { clearRun, loadRun, saveRun, type RunPhase, type SavedRun } from './runstore';
-import { evoParamsFor, type HeroClass } from './classes';
+import { evoParamsFor, findSubclass, type HeroClass } from './classes';
 import { mountSubclassSelect } from './subclassselect';
 import {
   advance,
   applyModifier,
   applyPending,
+  combatStatLines,
   isRunComplete,
   newRun,
+  setBonuses,
   type RunMode,
   type RunState,
 } from './state';
@@ -325,6 +327,10 @@ function spawnEmbers(count: number) {
 
 initAudioPrefs();
 onLocaleChange(applyStaticI18n);
+// Keep the persistent build bar's labels in sync when the language toggles.
+onLocaleChange(() => {
+  if (buildBarRun) renderBuildBar(buildBarRun);
+});
 applyStaticI18n();
 bindLangSwitcher();
 bindStatsModal();
@@ -341,7 +347,55 @@ let runAgg = { correct: 0, mistakes: 0, elapsedMs: 0 };
 function show(mount: (host: HTMLElement) => () => void) {
   if (cleanupScene) cleanupScene();
   scene.innerHTML = '';
+  hideBuildBar(); // in-run screens re-show it via renderBuildBar
   cleanupScene = mount(scene);
+}
+
+// A persistent strip showing the hero's build (depth, derived stats, awakened
+// sets, relics, subclass). It lives outside the per-screen host so it survives
+// screen changes; in-run screens call renderBuildBar, others leave it hidden.
+const buildBar = document.getElementById('build-bar')!;
+let buildBarRun: RunState | null = null;
+
+function renderBuildBar(run: RunState) {
+  buildBarRun = run;
+  const p = run.player;
+  const depth =
+    run.mode === 'endless'
+      ? t('encounter_depth', { n: run.fightNumber })
+      : `${run.fightNumber} / ${RUN_LENGTH}`;
+  const stats = [{ key: 'stat_atk', value: `${p.atkMult.toFixed(2)}×` }, ...combatStatLines(p)];
+  const statChips = stats
+    .map((s) => `<span class="bb-chip"><b>${t(s.key)}</b> ${s.value}</span>`)
+    .join('');
+  const sets = (p.awakenedSets ?? [])
+    .map(
+      (school) =>
+        `<span class="bb-set school-${school}" title="${t(setBonuses[school].nameKey)}">${setBonuses[school].icon}</span>`,
+    )
+    .join('');
+  const relicIcons = (run.relics ?? [])
+    .map((id) => {
+      const r = findRelic(id);
+      return `<span class="bb-relic" title="${t(r.nameKey)}">${r.icon}</span>`;
+    })
+    .join('');
+  const sub = run.subclassId
+    ? `<span class="bb-sub">${t(findSubclass(run.subclassId).nameKey)}</span>`
+    : '';
+  buildBar.innerHTML = `
+    <span class="bb-depth">${depth}</span>
+    <span class="bb-stats">${statChips}</span>
+    <span class="bb-grow"></span>
+    ${sub}
+    <span class="bb-icons">${sets}${relicIcons}</span>
+  `;
+  buildBar.hidden = false;
+}
+
+function hideBuildBar() {
+  buildBarRun = null;
+  buildBar.hidden = true;
 }
 
 function startRun() {
@@ -401,6 +455,7 @@ function showEncounter(run: RunState) {
       onStart: () => showFight(run),
     }),
   );
+  renderBuildBar(run);
 }
 
 function wordLevelFor(run: RunState): number {
@@ -442,6 +497,7 @@ function showFight(run: RunState) {
       },
     }),
   );
+  renderBuildBar(run);
 }
 
 function afterFightWin(run: RunState) {
@@ -471,6 +527,7 @@ function showRelicDraft(run: RunState) {
       },
     }),
   );
+  renderBuildBar(run);
 }
 
 function showLevelUp(run: RunState) {
@@ -487,6 +544,7 @@ function showLevelUp(run: RunState) {
       onChosen: () => afterLevelUp(run),
     }),
   );
+  renderBuildBar(run);
 }
 
 function afterLevelUp(run: RunState) {
@@ -532,6 +590,7 @@ function showAscend(run: RunState) {
       },
     }),
   );
+  renderBuildBar(run);
 }
 
 // The seeded '?' interlude (if any) preceding the next branch. Returns null on
@@ -553,6 +612,7 @@ function showEvent(run: RunState, event: StoryEvent) {
       onDone: () => enterBranch(run),
     }),
   );
+  renderBuildBar(run);
 }
 
 function enterBranch(run: RunState) {
@@ -587,6 +647,7 @@ function showBranch(run: RunState, nextFightNumber: number, candidates: Enemy[])
       },
     }),
   );
+  renderBuildBar(run);
 }
 
 function showRunOver(run: RunState, result: 'won' | 'lost') {
