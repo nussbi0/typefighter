@@ -27,6 +27,7 @@ export interface PersistedStats {
   seedResults: Record<string, SeedResult>;
   totalRuns: number;
   totalClears: number;
+  defeatedFoes: Record<string, number>; // base foe id → times slain
 }
 
 const emptyStats = (): PersistedStats => ({
@@ -36,6 +37,7 @@ const emptyStats = (): PersistedStats => ({
   seedResults: {},
   totalRuns: 0,
   totalClears: 0,
+  defeatedFoes: {},
 });
 
 let cache: PersistedStats | null = null;
@@ -118,6 +120,17 @@ export function bestWPM(locale: Locale): number {
 export function totals(): { runs: number; clears: number } {
   const s = read();
   return { runs: s.totalRuns, clears: s.totalClears };
+}
+
+// Records a defeat of the given (base) foe id for the bestiary.
+export function recordFoeDefeat(foeId: string): void {
+  const s = read();
+  s.defeatedFoes[foeId] = (s.defeatedFoes[foeId] ?? 0) + 1;
+  write(s);
+}
+
+export function foeDefeats(): Record<string, number> {
+  return read().defeatedFoes;
 }
 
 // A higher run beats a lower one; ties break on best WPM.

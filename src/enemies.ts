@@ -348,6 +348,12 @@ export function findEnemy(id: string): Enemy {
   return e;
 }
 
+// Strip the depth suffix ("goblin@5") and elite suffix ("sorcerer*elite") to
+// recover the roster id, so the bestiary tallies all variants under one foe.
+export function baseEnemyId(id: string): string {
+  return id.split('@')[0].split('*')[0];
+}
+
 export function enemiesByTier(tier: number): Enemy[] {
   return roster.filter((e) => e.tier === tier);
 }

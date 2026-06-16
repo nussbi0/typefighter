@@ -366,6 +366,100 @@ body {
   color: var(--ink);
 }
 
+/* Bestiary — a recorded roster of every foe faced. */
+.bestiary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.bestiary-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+  background: rgba(20, 12, 4, 0.05);
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+}
+
+.bestiary-entry.locked {
+  align-items: center;
+  opacity: 0.55;
+}
+
+.bestiary-sprite {
+  font-size: 30px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.bestiary-entry.locked .bestiary-sprite {
+  filter: grayscale(1);
+  color: var(--ink-muted);
+}
+
+.bestiary-body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.bestiary-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.bestiary-name {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--crimson);
+}
+.bestiary-entry.locked .bestiary-name {
+  color: var(--ink-muted);
+  letter-spacing: 0.3em;
+}
+
+.bestiary-kills {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+.bestiary-tags {
+  justify-content: flex-start;
+}
+.bestiary-tags:empty {
+  display: none;
+}
+.bestiary-tags .ability-tag {
+  font-size: 10px;
+  padding: 2px 7px;
+}
+
+.bestiary-lore {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-style: italic;
+  line-height: 1.4;
+  color: var(--ink-light);
+}
+
+@media (max-width: 560px) {
+  .bestiary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .howto-card {
   max-width: 560px;
   gap: 18px;

@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
+  foeDefeats,
+  recordFoeDefeat,
   recordSeedResult,
   getSeedResult,
   recentDailies,
@@ -46,6 +48,30 @@ describe('recordSeedResult', () => {
     recordSeedResult('s', result({ depth: 5, bestWPM: 50 }));
     expect(recordSeedResult('s', result({ depth: 5, bestWPM: 70 }))).toBe(true);
     expect(getSeedResult('s')?.bestWPM).toBe(70);
+  });
+});
+
+describe('foe defeats (bestiary)', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    resetStatsCache();
+  });
+
+  it('starts with no recorded foes', () => {
+    expect(foeDefeats()).toEqual({});
+  });
+
+  it('counts each defeat per foe id', () => {
+    recordFoeDefeat('goblin');
+    recordFoeDefeat('goblin');
+    recordFoeDefeat('dragon');
+    expect(foeDefeats()).toEqual({ goblin: 2, dragon: 1 });
+  });
+
+  it('persists across a cache reset (reads back from storage)', () => {
+    recordFoeDefeat('orc');
+    resetStatsCache();
+    expect(foeDefeats().orc).toBe(1);
   });
 });
 

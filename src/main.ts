@@ -36,19 +36,24 @@ import {
   bestWPM,
   recordEndlessEnd,
   recordFightOutcome,
+  recordFoeDefeat,
   recentDailies,
   recordRunEnd,
   recordRunStart,
   recordSeedResult,
+  foeDefeats,
   totals,
   type FightOutcome,
   type SeedResult,
 } from './stats';
 import {
+  baseEnemyId,
   endlessCandidates,
   enemiesByTier,
+  enemyAbilities,
   findEnemy,
   makeElite,
+  roster,
   RUN_LENGTH,
   type Enemy,
 } from './enemies';
@@ -112,10 +117,56 @@ function renderStatsModal() {
       <div class="annals-row annals-row-solo"><span class="annals-val">${tot.runs} (${tot.clears})</span></div>
     </div>
     ${renderDailyAnnals()}
+    ${renderBestiary()}
   `;
   content.querySelectorAll<HTMLElement>('[data-i18n]').forEach((el) => {
     el.textContent = t(el.dataset.i18n!);
   });
+}
+
+function renderBestiary(): string {
+  const defeats = foeDefeats();
+  const recorded = roster.filter((e) => (defeats[e.id] ?? 0) > 0).length;
+  const entries = roster
+    .map((foe) => {
+      const kills = defeats[foe.id] ?? 0;
+      const known = kills > 0;
+      if (!known) {
+        return `<div class="bestiary-entry locked">
+            <div class="bestiary-sprite">?</div>
+            <div class="bestiary-body">
+              <div class="bestiary-name">${t('bestiary_unknown')}</div>
+            </div>
+          </div>`;
+      }
+      const tags = enemyAbilities(foe)
+        .map(
+          (a) =>
+            `<span class="ability-tag" title="${t(a.tip)}">${t(a.key, a.value != null ? { n: a.value } : undefined)}</span>`,
+        )
+        .join('');
+      const bossTag = foe.isBoss
+        ? `<span class="ability-tag elite-tag">${t('bestiary_boss')}</span>`
+        : '';
+      return `<div class="bestiary-entry">
+          <div class="bestiary-sprite">${foe.sprite}</div>
+          <div class="bestiary-body">
+            <div class="bestiary-head">
+              <span class="bestiary-name">${t(foe.nameKey)}</span>
+              <span class="bestiary-kills">${t('bestiary_slain', { n: kills })}</span>
+            </div>
+            <div class="ability-tags bestiary-tags">${bossTag}${tags}</div>
+            <p class="bestiary-lore">${t(`bestiary_${foe.id}_lore`)}</p>
+          </div>
+        </div>`;
+    })
+    .join('');
+  return `
+    <div class="annals-section annals-section-full">
+      <h3 class="annals-section-title">${t('bestiary_title')} · ${t('bestiary_recorded', { n: recorded, total: roster.length })}</h3>
+      <div class="bestiary-grid">${entries}</div>
+    </div>
+  `;
 }
 
 function renderDailyAnnals(): string {
@@ -370,6 +421,7 @@ function showFight(run: RunState) {
       onWin: (remainingHP, outcome) => {
         tallyOutcome(outcome);
         recordFightOutcome(outcome, getLocale());
+        recordFoeDefeat(baseEnemyId(run.upcomingEnemy.id));
         run.player.hp = remainingHP;
         // A completed elite deed: heal and bank extra rerolls for the next boon.
         if (outcome.deedMet) {

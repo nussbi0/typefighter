@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+  baseEnemyId,
   deedLine,
   DEEDS,
   eliteModifierLine,
@@ -108,6 +109,25 @@ describe('afflictions', () => {
   it('survive depth scaling unchanged', () => {
     expect(scaleEnemy(findEnemy('sorcerer'), 9).afflict).toBe('scramble');
     expect(scaleEnemy(findEnemy('goblin'), 9).afflict).toBeUndefined();
+  });
+});
+
+describe('baseEnemyId', () => {
+  it('returns plain ids unchanged', () => {
+    expect(baseEnemyId('goblin')).toBe('goblin');
+  });
+  it('strips the endless depth suffix', () => {
+    expect(baseEnemyId('goblin@5')).toBe('goblin');
+  });
+  it('strips the elite suffix', () => {
+    expect(baseEnemyId('sorcerer*elite')).toBe('sorcerer');
+  });
+  it('strips a combined depth + elite suffix', () => {
+    expect(baseEnemyId('sorcerer@7*elite')).toBe('sorcerer');
+  });
+  it('maps a scaled elite back to a real roster id', () => {
+    const elite = makeElite(scaleEnemy(findEnemy('orc'), 6), streamFor('x', 1));
+    expect(() => findEnemy(baseEnemyId(elite.id))).not.toThrow();
   });
 });
 
