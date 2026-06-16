@@ -814,6 +814,17 @@ body {
   box-shadow: 0 6px 16px rgba(20, 12, 4, 0.4);
 }
 
+.meters {
+  display: flex;
+  gap: 12px;
+}
+
+.meters > .momentum,
+.meters > .mana {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
 .momentum {
   position: relative;
   width: 100%;
@@ -850,8 +861,6 @@ body {
   position: relative;
   width: 100%;
   height: 11px;
-  /* Sit close beneath the momentum bar so the meters read as one cluster. */
-  margin-top: -22px;
   background: rgba(20, 12, 4, 0.18);
   border: 1px solid var(--panel-border);
   border-radius: 999px;

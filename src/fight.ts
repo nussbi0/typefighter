@@ -105,18 +105,20 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
         </div>
       </div>
 
-      <div class="momentum" aria-hidden="true">
-        <div class="momentum-fill"></div>
-        <span class="momentum-label"></span>
+      <div class="meters">
+        <div class="momentum" aria-hidden="true">
+          <div class="momentum-fill"></div>
+          <span class="momentum-label"></span>
+        </div>
+        ${
+          spell
+            ? `<div class="mana" aria-hidden="true">
+          <div class="mana-fill"></div>
+          <span class="mana-label"></span>
+        </div>`
+            : ''
+        }
       </div>
-      ${
-        spell
-          ? `<div class="mana" aria-hidden="true">
-        <div class="mana-fill"></div>
-        <span class="mana-label"></span>
-      </div>`
-          : ''
-      }
 
       <div class="track" aria-hidden="true">
         <span class="corner corner-tl"></span>
