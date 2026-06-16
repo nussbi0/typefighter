@@ -17,6 +17,37 @@
   --font-body: 'EB Garamond', Georgia, 'Times New Roman', serif;
 }
 
+/* Dark "dungeon" theme. The body background and most surfaces derive from the
+   parchment and ink custom properties, so overriding them here recolors the
+   whole game; a few literal-color spots get targeted tweaks below. */
+:root[data-theme='dark'] {
+  --parchment-1: #2b2114;
+  --parchment-2: #15100a;
+  --parchment-3: #0e0a05;
+  --ink: #ead9b0;
+  --ink-light: #cdb98d;
+  --ink-muted: #9a8862;
+  --crimson: #b23a2a;
+  --crimson-light: #d6593f;
+  --forest: #6fa24a;
+  --gold-dim: #b88b3a;
+  --panel: rgba(40, 31, 18, 0.96);
+  --panel-border: rgba(180, 150, 100, 0.42);
+}
+
+:root[data-theme='dark'] .build-bar {
+  background: rgba(150, 115, 65, 0.16);
+}
+
+/* Keep the word — the focal point — the brightest thing on screen: a lighter
+   stone card with a faint warm glow rather than blending into the dark track. */
+:root[data-theme='dark'] .word {
+  background: #3a2c18;
+  box-shadow:
+    0 3px 14px rgba(0, 0, 0, 0.6),
+    0 0 18px rgba(243, 197, 74, 0.16);
+}
+
 * {
   box-sizing: border-box;
 }

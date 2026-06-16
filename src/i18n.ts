@@ -189,6 +189,8 @@ const messages: Record<Locale, Messages> = {
 
     sound_on: '🔊 Sound',
     sound_off: '🔇 Muted',
+    theme_light: '☀️ Light',
+    theme_dark: '🌙 Dark',
 
     howto_button: 'Guide',
     howto_tagline: 'A typing-fueled RPG duel.',
@@ -551,6 +553,8 @@ const messages: Record<Locale, Messages> = {
 
     sound_on: '🔊 Ton',
     sound_off: '🔇 Stumm',
+    theme_light: '☀️ Hell',
+    theme_dark: '🌙 Dunkel',
 
     howto_button: 'Anleitung',
     howto_tagline: 'Ein tippgetriebenes RPG-Duell.',

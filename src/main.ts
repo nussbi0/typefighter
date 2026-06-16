@@ -62,6 +62,7 @@ import {
   type Enemy,
 } from './enemies';
 import { initAudioPrefs, isMuted, setMuted, sfxType } from './audio';
+import { currentTheme, initTheme, toggleTheme, watchSystemTheme, type Theme } from './theme';
 import { dailySeed, randomSeed, streamFor } from './rng';
 import { fetchLeaderboard, type LeaderboardData } from './leaderboard';
 
@@ -306,6 +307,18 @@ function bindSoundToggle() {
   sync();
 }
 
+function bindThemeToggle() {
+  const btn = document.getElementById('theme-button')!;
+  const sync = (theme: Theme = currentTheme()) => {
+    btn.textContent = t(theme === 'dark' ? 'theme_dark' : 'theme_light');
+    btn.setAttribute('aria-pressed', String(theme === 'dark'));
+  };
+  btn.addEventListener('click', () => sync(toggleTheme()));
+  onLocaleChange(() => sync());
+  watchSystemTheme(() => sync()); // reflect live OS changes until a choice is made
+  sync();
+}
+
 function spawnEmbers(count: number) {
   const layer = document.createElement('div');
   layer.className = 'embers';
@@ -326,6 +339,7 @@ function spawnEmbers(count: number) {
 }
 
 initAudioPrefs();
+initTheme();
 onLocaleChange(applyStaticI18n);
 // Keep the persistent build bar's labels in sync when the language toggles.
 onLocaleChange(() => {
@@ -337,6 +351,7 @@ bindStatsModal();
 bindHowToModal();
 bindLeaderboardModal();
 bindSoundToggle();
+bindThemeToggle();
 spawnEmbers(20);
 
 const scene = document.getElementById('scene')!;
