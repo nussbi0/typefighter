@@ -136,7 +136,8 @@ body {
   .fizzle,
   .set-awaken,
   .deed-met,
-  .deed-failed {
+  .deed-failed,
+  .phoenix {
     animation: damage-fade 1000ms ease forwards;
   }
   .hp-fill {
@@ -2735,6 +2736,89 @@ body {
 
 .ascend-card {
   border-top: 3px solid #8a5cd0;
+}
+
+/* Relic draft — drafted after an elite victory. Amber, treasure-like. */
+.relic-draft {
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+}
+
+.relic-title {
+  font-family: var(--font-display);
+  font-size: clamp(30px, 5vw, 46px);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: var(--gold-dim);
+  margin: 0;
+}
+
+.relic-subtitle {
+  margin: 0 0 6px;
+  font-family: var(--font-body);
+  font-size: 18px;
+  font-style: italic;
+  color: var(--ink-light);
+}
+
+.relic-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  width: 100%;
+  max-width: 880px;
+  margin-top: 4px;
+}
+
+.relic-card {
+  border-top: 3px solid var(--gold-dim);
+}
+
+@media (max-width: 640px) {
+  .relic-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Held relics shown on the encounter hero preview. */
+.relic-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 2px;
+}
+.relic-strip:empty {
+  display: none;
+}
+
+.relic-chip {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--gold-dim);
+  padding: 3px 9px;
+  background: rgba(243, 197, 74, 0.12);
+  border: 1px solid var(--gold-dim);
+  border-radius: 999px;
+}
+
+/* Phoenix Feather proc floater. */
+.phoenix {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #ff7a2f;
+  text-shadow: 0 0 12px rgba(255, 122, 47, 0.7);
+  animation: heal-float 1400ms ease-out forwards;
 }
 
 .class-stats {

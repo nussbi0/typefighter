@@ -14,6 +14,8 @@ import { mountRunOver } from './runover';
 import { mountBranch } from './branch';
 import { mountEventScreen } from './eventscreen';
 import { pickEvent, type StoryEvent } from './events';
+import { mountRelicDraft } from './relicdraft';
+import { applyRelic, drawRelics, relicEffects } from './relics';
 import { mountClassSelect } from './classselect';
 import { mountModeSelect, type ModeChoice } from './modeselect';
 import { mountCustomSeed } from './customseed';
@@ -395,6 +397,7 @@ function showEncounter(run: RunState) {
       daily: run.daily,
       appliedHeal: applied.healed,
       appliedMaxHP: applied.maxBoosted,
+      relics: run.relics ?? [],
       onStart: () => showFight(run),
     }),
   );
@@ -417,6 +420,7 @@ function showFight(run: RunState) {
       passive: run.heroClass.passive,
       spell: run.heroClass.spell,
       evo: evoParamsFor(run.subclassId),
+      relic: relicEffects(run.relics),
       wordRng: streamFor(run.seed, 'words', run.fightNumber),
       onWin: (remainingHP, outcome) => {
         tallyOutcome(outcome);
@@ -445,7 +449,28 @@ function afterFightWin(run: RunState) {
     showRunOver(run, 'won');
     return;
   }
+  // An elite victory offers a relic before the usual boon (if any remain). The
+  // just-fought elite is still run.upcomingEnemy, so this also resumes cleanly.
+  if (run.upcomingEnemy.elite && drawRelics(run.relics ?? []).length > 0) {
+    showRelicDraft(run);
+    return;
+  }
   showLevelUp(run);
+}
+
+function showRelicDraft(run: RunState) {
+  const options = drawRelics(run.relics ?? [], 3, streamFor(run.seed, 'relic', run.fightNumber));
+  persist(run, 'relic');
+  show((host) =>
+    mountRelicDraft(host, {
+      options,
+      onChosen: (relic) => {
+        run.relics = [...(run.relics ?? []), relic.id];
+        applyRelic(run.player, relic);
+        showLevelUp(run);
+      },
+    }),
+  );
 }
 
 function showLevelUp(run: RunState) {
@@ -616,6 +641,7 @@ function resumeRun(saved: SavedRun) {
   if (saved.phase === 'levelup') showLevelUp(run);
   else if (saved.phase === 'branch') enterBranch(run);
   else if (saved.phase === 'ascend') showAscend(run);
+  else if (saved.phase === 'relic') showRelicDraft(run);
   else if (saved.phase === 'event') {
     const event = eventFor(run);
     if (event) showEvent(run, event);

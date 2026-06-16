@@ -1,6 +1,7 @@
 import { t, onLocaleChange, renderTextWithDropCap } from './i18n';
 import { deedLine, eliteModifierLine, enemyAbilities, RUN_LENGTH, type Enemy } from './enemies';
 import { combatStatLines, type PlayerStats } from './state';
+import { findRelic } from './relics';
 
 function abilityTagsHTML(enemy: Enemy): string {
   const lines = [...enemyAbilities(enemy)];
@@ -24,6 +25,7 @@ export interface EncounterProps {
   daily?: boolean;
   appliedHeal?: number;
   appliedMaxHP?: number;
+  relics?: string[];
   onStart: () => void;
 }
 
@@ -43,6 +45,7 @@ export function mountEncounter(host: HTMLElement, props: EncounterProps): () => 
     daily = false,
     appliedHeal = 0,
     appliedMaxHP = 0,
+    relics = [],
     onStart,
   } = props;
 
@@ -96,6 +99,7 @@ export function mountEncounter(host: HTMLElement, props: EncounterProps): () => 
               )
               .join('')}
           </dl>
+          <div class="relic-strip" data-relics></div>
         </div>
       </div>
 
@@ -110,6 +114,7 @@ export function mountEncounter(host: HTMLElement, props: EncounterProps): () => 
   const abilitiesEl = root.querySelector('[data-abilities]') as HTMLElement;
   const deedEl = root.querySelector('[data-deed]') as HTMLElement;
   const nameEl = root.querySelector('.enemy-preview .preview-name') as HTMLElement;
+  const relicEl = root.querySelector('[data-relics]') as HTMLElement;
   const seedBar = root.querySelector('[data-seedbar]') as HTMLElement;
   const seedText = root.querySelector('[data-seedtext]') as HTMLElement;
   const shareBtn = root.querySelector('[data-share]') as HTMLButtonElement;
@@ -125,6 +130,12 @@ export function mountEncounter(host: HTMLElement, props: EncounterProps): () => 
       }
     });
     abilitiesEl.innerHTML = abilityTagsHTML(enemy);
+    relicEl.innerHTML = relics
+      .map((id) => {
+        const r = findRelic(id);
+        return `<span class="relic-chip" title="${t(r.descKey)}">${r.icon} ${t(r.nameKey)}</span>`;
+      })
+      .join('');
     if (enemy.elite && enemy.eliteName) renderTextWithDropCap(nameEl, enemy.eliteName);
     const deed = deedLine(enemy);
     deedEl.innerHTML = deed

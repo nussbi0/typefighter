@@ -18,6 +18,7 @@ import {
 import { announce } from './a11y';
 import type { Affliction, Enemy } from './enemies';
 import { BASE_EVO, type EvoParams } from './classes';
+import { BASE_RELIC_EFFECTS, type RelicEffects } from './relics';
 import type { PlayerStats } from './state';
 import type { FightOutcome } from './stats';
 
@@ -46,6 +47,7 @@ export interface FightProps {
   passive?: string;
   spell?: string;
   evo?: EvoParams; // subclass tuning of the hero's passive and spell
+  relic?: RelicEffects; // folded runtime effects of held relics
   wordRng?: Rng;
   onWin: (remainingHP: number, outcome: FightOutcome) => void;
   onLose: (outcome: FightOutcome) => void;
@@ -73,6 +75,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     passive,
     spell,
     evo = BASE_EVO,
+    relic = BASE_RELIC_EFFECTS,
     wordRng = unseededRng,
     onWin,
     onLose,
@@ -208,6 +211,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   const AFFLICT_WORDS = 3; // how many words a foe's affliction debuffs
   const MANA_MAX = 6; // 3 Perfects, 6 Greats, or any mix charges an invocation
   const MANA_GAIN: Record<Tier, number> = { perfect: 2, great: 1, good: 0 };
+  const overdriveDuration = OVERDRIVE_MS + relic.overdriveBonusMs; // relic Warbanner extends it
 
   // Enemy status effects + per-class passive bookkeeping
   let poisonStacks = 0;
@@ -216,6 +220,8 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   let guardsUsed = 0; // knight Guard — early hits halved
   let wordsCompleted = 0; // mage Overload counter
   let tookDamage = false; // for the elite 'flawless' deed
+  let strikeCount = 0; // relic Metronome — strikes landed
+  let phoenixUsed = false; // relic Phoenix Feather — once-per-fight cheat death
 
   const POISON_INTERVAL_MS = 1000;
 
@@ -454,15 +460,20 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     if (wordKind === 'flame') dmg *= 1.5;
     // Overdrive — every strike hits harder
     if (overdriveActive()) dmg *= OVERDRIVE_DAMAGE;
+    // Relic — Glass Cannon and the like scale all damage you deal
+    dmg *= relic.damageDealtMult;
 
     dmg = Math.round(dmg);
 
     // Rogue — Ambush: the opening strike(s) always crit (Nightblade: first two)
+    strikeCount += 1;
     let crit = Math.random() < player.critChance;
     if (passive === 'ambush' && ambushUsed < evo.ambushStrikes) {
       crit = true;
       ambushUsed += 1;
     }
+    // Relic — Metronome: every Nth strike is a guaranteed crit
+    if (relic.critEveryN > 0 && strikeCount % relic.critEveryN === 0) crit = true;
     if (crit) dmg = Math.round(dmg * player.critMult);
 
     // Golem etc — armor blunts the blow
@@ -539,6 +550,8 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     dmg = Math.round(dmg * evo.spellPower);
     healAmount = Math.round(healAmount * evo.spellPower);
     if (evo.spellSmite > 0) dmg += Math.round(BASE_DAMAGE * evo.spellSmite * player.atkMult);
+    // Relics scale spell damage too.
+    dmg = Math.round(dmg * relic.damageDealtMult);
 
     if (dmg > 0) {
       if (enemy.armor) dmg = Math.max(1, dmg - enemy.armor);
@@ -580,9 +593,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   }
 
   function resolveCursed() {
-    const dmg = Math.max(1, Math.round(enemy.hitDamage * 0.7));
-    state.playerHP = Math.max(0, state.playerHP - dmg);
-    tookDamage = true;
+    const dmg = hurtPlayer(Math.max(1, Math.round(enemy.hitDamage * 0.7)));
     resetMomentum();
     sfxHurt();
     showHit('player', dmg);
@@ -602,6 +613,22 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     } else {
       scheduleSpawn();
     }
+  }
+
+  // Apply incoming damage through relic effects: scale it (Glass Cannon) and,
+  // if it would be lethal, spend a Phoenix Feather to survive at 1 HP once.
+  // Returns the damage actually dealt (for on-hit display and foe lifesteal).
+  function hurtPlayer(raw: number): number {
+    const dmg = Math.max(0, Math.round(raw * relic.damageTakenMult));
+    state.playerHP = Math.max(0, state.playerHP - dmg);
+    tookDamage = true;
+    if (state.playerHP === 0 && relic.cheatDeath && !phoenixUsed) {
+      phoenixUsed = true;
+      state.playerHP = 1;
+      showFloat('phoenix', t('relic_phoenix_proc'));
+      announce(t('relic_phoenix_proc'));
+    }
+    return dmg;
   }
 
   function applyHeal(amount: number) {
@@ -642,7 +669,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
 
   function startOverdrive() {
     momentum = 0;
-    overdriveUntil = performance.now() + OVERDRIVE_MS;
+    overdriveUntil = performance.now() + overdriveDuration;
     sfxOverdrive();
     announce(t('overdrive'));
     updateMomentumUI();
@@ -670,7 +697,8 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   // Mana is a banked resource, not a streak — unlike momentum it survives
   // taking hits, persists across fights, and is only spent by invoking.
   function gainMana(tier: Tier) {
-    const gain = MANA_GAIN[tier];
+    // Relic — Arcane Focus: Perfect strikes grant extra mana.
+    const gain = MANA_GAIN[tier] + (tier === 'perfect' ? relic.manaOnPerfect : 0);
     if (!spell || invokeQueued || mana >= MANA_MAX || gain === 0) return;
     mana = Math.min(MANA_MAX, mana + gain);
     player.mana = mana;
@@ -709,7 +737,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
         overdriveUntil += delta;
       }
       if (now >= overdriveUntil) endOverdrive();
-      else els.momentumFill.style.width = `${((overdriveUntil - now) / OVERDRIVE_MS) * 100}%`;
+      else els.momentumFill.style.width = `${((overdriveUntil - now) / overdriveDuration) * 100}%`;
     }
     if (state.status === 'fighting') {
       setMusicIntensity(overdriveActive() ? 1 : 0.2 + 0.8 * (momentum / MOMENTUM_MAX));
@@ -728,9 +756,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
       now - lastPoisonTick >= POISON_INTERVAL_MS
     ) {
       lastPoisonTick = now;
-      const tick = poisonStacks;
-      state.playerHP = Math.max(0, state.playerHP - tick);
-      tookDamage = true;
+      const tick = hurtPlayer(poisonStacks);
       showFloat('poison', `-${tick} ☠`);
       poisonStacks -= 1;
       renderHP();
@@ -792,8 +818,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
       guardsUsed += 1;
       showFloat('guard', t('passive_guard'));
     }
-    state.playerHP = Math.max(0, state.playerHP - dmg);
-    tookDamage = true;
+    dmg = hurtPlayer(dmg);
     resetMomentum();
     sfxHurt();
     showHit('player', dmg);

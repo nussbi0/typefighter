@@ -209,6 +209,8 @@ const messages: Record<Locale, Messages> = {
       'Boons belong to schools (Blood / Holy / Steel) — collect three of one to awaken its set bonus.',
     howto_p12:
       'Early in a run your hero ascends — choose a subclass that reshapes your passive and spell.',
+    howto_p13:
+      'Defeat an elite to draft a relic — a rare, build-defining boon, sometimes with a catch.',
     howto_begin: 'Enter the fray',
 
     classselect_title: 'Choose your hero',
@@ -310,6 +312,22 @@ const messages: Record<Locale, Messages> = {
     deed_swift_tip: 'Deed — slay it quickly to upgrade the reward.',
     deed_met: 'Deed fulfilled! +2 rerolls',
     deed_failed: 'Deed failed',
+
+    relic_title: 'A Relic of Power',
+    relic_subtitle: 'The elite yields a rare treasure. Choose one to carry.',
+    relic_metronome: 'Metronome',
+    relic_metronome_desc: 'Every 13th strike is a guaranteed critical hit.',
+    relic_glass_cannon: 'Glass Cannon',
+    relic_glass_cannon_desc: 'Deal +50% damage, but take +30% damage.',
+    relic_sanguine_pact: 'Sanguine Pact',
+    relic_sanguine_pact_desc: '+40% lifesteal, but your max HP is halved.',
+    relic_phoenix_feather: 'Phoenix Feather',
+    relic_phoenix_feather_desc: 'Once per fight, survive a lethal blow at 1 HP.',
+    relic_phoenix_proc: 'Phoenix!',
+    relic_arcane_focus: 'Arcane Focus',
+    relic_arcane_focus_desc: 'Every Perfect strike grants +1 mana.',
+    relic_warbanner: 'Warbanner',
+    relic_warbanner_desc: 'Overdrive lasts 3 seconds longer.',
 
     event_prompt: 'Type the litany before it fades for the full blessing.',
     event_skip: 'Walk on',
@@ -554,6 +572,8 @@ const messages: Record<Locale, Messages> = {
       'Gaben gehören zu Schulen (Blut / Heilig / Stahl) — sammle drei einer Schule, um ihren Set-Bonus zu erwecken.',
     howto_p12:
       'Früh im Lauf steigt dein Held auf — wähle eine Unterklasse, die Passiv und Zauber neu formt.',
+    howto_p13:
+      'Besiege einen Elite-Gegner, um ein Relikt zu ziehen — eine seltene, prägende Gabe, manchmal mit Haken.',
     howto_begin: 'In den Kampf',
 
     classselect_title: 'Wähle deinen Helden',
@@ -657,6 +677,22 @@ const messages: Record<Locale, Messages> = {
     deed_swift_tip: 'Großtat — erlege ihn rasch für eine bessere Belohnung.',
     deed_met: 'Großtat vollbracht! +2 Neuwürfe',
     deed_failed: 'Großtat verfehlt',
+
+    relic_title: 'Ein Relikt der Macht',
+    relic_subtitle: 'Der Elite-Gegner gibt einen seltenen Schatz frei. Wähle eines.',
+    relic_metronome: 'Metronom',
+    relic_metronome_desc: 'Jeder 13. Schlag ist ein garantierter kritischer Treffer.',
+    relic_glass_cannon: 'Glaskanone',
+    relic_glass_cannon_desc: '+50% verursachter Schaden, aber +30% erlittener Schaden.',
+    relic_sanguine_pact: 'Blutpakt',
+    relic_sanguine_pact_desc: '+40% Lebensraub, aber deine max LP werden halbiert.',
+    relic_phoenix_feather: 'Phönixfeder',
+    relic_phoenix_feather_desc: 'Einmal pro Kampf überlebst du einen tödlichen Schlag mit 1 LP.',
+    relic_phoenix_proc: 'Phönix!',
+    relic_arcane_focus: 'Arkaner Fokus',
+    relic_arcane_focus_desc: 'Jeder Perfekt-Treffer gewährt +1 Mana.',
+    relic_warbanner: 'Kriegsbanner',
+    relic_warbanner_desc: 'Overdrive hält 3 Sekunden länger.',
 
     event_prompt: 'Tippe die Litanei, bevor sie verklingt, für den vollen Segen.',
     event_skip: 'Weitergehen',

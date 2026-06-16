@@ -48,6 +48,8 @@ export interface RunState {
   bonusRerolls?: number;
   // The subclass this hero ascended into mid-run, if any.
   subclassId?: string;
+  // Relic ids drafted from elite victories.
+  relics?: string[];
 }
 
 const STARTING_HP = 100;
