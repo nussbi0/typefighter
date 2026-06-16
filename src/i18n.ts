@@ -186,6 +186,8 @@ const messages: Record<Locale, Messages> = {
       'Great and Perfect strikes fill your mana (kept between fights) — press Enter on a full bar to summon your spell word.',
     howto_p11:
       'Boons belong to schools (Blood / Holy / Steel) — collect three of one to awaken its set bonus.',
+    howto_p12:
+      'Early in a run your hero ascends — choose a subclass that reshapes your passive and spell.',
     howto_begin: 'Enter the fray',
 
     classselect_title: 'Choose your hero',
@@ -207,6 +209,29 @@ const messages: Record<Locale, Messages> = {
     passive_templar: "Consecration — heal 12 HP at each fight's start.",
     passive_berserker: 'Bloodlust — more damage the lower your HP.',
     passive_guard: 'Guard',
+
+    ascend_title: 'Ascension',
+    ascend_subtitle: 'Your trials have forged something greater. Choose your path.',
+    subclass_crusader: 'Crusader',
+    subclass_crusader_desc: 'Aegis now also smites the foe, and your strikes hit harder.',
+    subclass_warden: 'Warden',
+    subclass_warden_desc: 'Guard halves the first two blows; +3 defense and +15 max HP.',
+    subclass_pyromancer: 'Pyromancer',
+    subclass_pyromancer_desc: 'Fireball burns far hotter, and your combos bite deeper.',
+    subclass_chronomancer: 'Chronomancer',
+    subclass_chronomancer_desc: 'Overload detonates every 3rd strike; words approach slower.',
+    subclass_assassin: 'Assassin',
+    subclass_assassin_desc: 'Eviscerate cuts deeper, and your crits deal +0.5× damage.',
+    subclass_nightblade: 'Nightblade',
+    subclass_nightblade_desc: 'Your first two strikes always crit; +12% crit chance.',
+    subclass_inquisitor: 'Inquisitor',
+    subclass_inquisitor_desc: 'Smite strikes harder, and your blows land +10% damage.',
+    subclass_guardian: 'Guardian',
+    subclass_guardian_desc: 'Consecration heals far more; +20 max HP and +2 defense.',
+    subclass_warlord: 'Warlord',
+    subclass_warlord_desc: 'Rampage hits harder, and your strikes land +12% damage.',
+    subclass_reaver: 'Reaver',
+    subclass_reaver_desc: 'Bloodlust rages harder the lower your HP; +15% lifesteal.',
 
     spell_aegis_word: 'aegis',
     spell_fireball_word: 'fireball',
@@ -484,6 +509,8 @@ const messages: Record<Locale, Messages> = {
       'Stark- und Perfekt-Treffer füllen dein Mana (bleibt zwischen Kämpfen erhalten) — drücke Enter bei voller Leiste, um dein Zauberwort zu rufen.',
     howto_p11:
       'Gaben gehören zu Schulen (Blut / Heilig / Stahl) — sammle drei einer Schule, um ihren Set-Bonus zu erwecken.',
+    howto_p12:
+      'Früh im Lauf steigt dein Held auf — wähle eine Unterklasse, die Passiv und Zauber neu formt.',
     howto_begin: 'In den Kampf',
 
     classselect_title: 'Wähle deinen Helden',
@@ -505,6 +532,30 @@ const messages: Record<Locale, Messages> = {
     passive_templar: 'Weihe — heile 12 LP zu Kampfbeginn.',
     passive_berserker: 'Blutrausch — mehr Schaden, je weniger LP.',
     passive_guard: 'Schutz',
+
+    ascend_title: 'Aufstieg',
+    ascend_subtitle: 'Deine Prüfungen haben Größeres geschmiedet. Wähle deinen Pfad.',
+    subclass_crusader: 'Kreuzritter',
+    subclass_crusader_desc: 'Aegis schlägt nun auch den Feind, und deine Hiebe treffen härter.',
+    subclass_warden: 'Wächter',
+    subclass_warden_desc:
+      'Schutz halbiert die ersten zwei Schläge; +3 Verteidigung und +15 max LP.',
+    subclass_pyromancer: 'Pyromant',
+    subclass_pyromancer_desc: 'Feuerball brennt weit heißer, und deine Kombos beißen tiefer.',
+    subclass_chronomancer: 'Chronomant',
+    subclass_chronomancer_desc: 'Überladung zündet jeden 3. Schlag; Wörter nahen langsamer.',
+    subclass_assassin: 'Assassine',
+    subclass_assassin_desc: 'Ausweiden schneidet tiefer, und deine Krits machen +0.5× Schaden.',
+    subclass_nightblade: 'Nachtklinge',
+    subclass_nightblade_desc: 'Deine ersten zwei Schläge kriten stets; +12% Kritchance.',
+    subclass_inquisitor: 'Inquisitor',
+    subclass_inquisitor_desc: 'Strafen trifft härter, und deine Hiebe machen +10% Schaden.',
+    subclass_guardian: 'Beschützer',
+    subclass_guardian_desc: 'Weihe heilt weit mehr; +20 max LP und +2 Verteidigung.',
+    subclass_warlord: 'Kriegsherr',
+    subclass_warlord_desc: 'Amoklauf trifft härter, und deine Hiebe machen +12% Schaden.',
+    subclass_reaver: 'Plünderer',
+    subclass_reaver_desc: 'Blutrausch tobt heftiger bei wenig LP; +15% Lebensraub.',
 
     spell_aegis_word: 'schild',
     spell_fireball_word: 'feuerball',

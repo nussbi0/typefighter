@@ -46,6 +46,8 @@ export interface RunState {
   pendingMaxHPBoost: number;
   // Extra rerolls granted by a completed elite deed, spent at the next level-up.
   bonusRerolls?: number;
+  // The subclass this hero ascended into mid-run, if any.
+  subclassId?: string;
 }
 
 const STARTING_HP = 100;

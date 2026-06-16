@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { classes, findClass } from './classes';
+import {
+  BASE_EVO,
+  classes,
+  evoParamsFor,
+  findClass,
+  findSubclass,
+  subclasses,
+  subclassesFor,
+} from './classes';
 import { streamFor } from './rng';
 import {
   advance,
@@ -190,6 +198,45 @@ describe('boon schools and sets', () => {
 
   it('has a defined set bonus for every school', () => {
     for (const school of SCHOOLS) expect(setBonuses[school].school).toBe(school);
+  });
+});
+
+describe('class evolutions', () => {
+  it('gives every class exactly two subclasses tagged to it', () => {
+    for (const c of classes) {
+      const pair = subclassesFor(c.id);
+      expect(pair).toHaveLength(2);
+      for (const s of pair) expect(s.classId).toBe(c.id);
+    }
+  });
+
+  it('uses base evo params when not ascended', () => {
+    expect(evoParamsFor(undefined)).toEqual(BASE_EVO);
+  });
+
+  it('folds a subclass override over the base params', () => {
+    // Warden guards twice; everything else stays at base.
+    const evo = evoParamsFor('warden');
+    expect(evo.guardCharges).toBe(2);
+    expect(evo.overloadEvery).toBe(BASE_EVO.overloadEvery);
+  });
+
+  it('subclass apply grants its stat bonus', () => {
+    const p = freshStats();
+    findSubclass('warden').apply(p);
+    expect(p.defense).toBe(3);
+    expect(p.maxHP).toBe(115);
+  });
+
+  it('findSubclass throws on an unknown id', () => {
+    expect(() => findSubclass('nope')).toThrow();
+  });
+
+  it('every subclass id is unique', () => {
+    const ids = Object.values(subclasses)
+      .flat()
+      .map((s) => s.id);
+    expect(new Set(ids).size).toBe(ids.length);
   });
 });
 

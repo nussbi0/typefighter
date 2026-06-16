@@ -19,7 +19,8 @@ import { mountModeSelect, type ModeChoice } from './modeselect';
 import { mountCustomSeed } from './customseed';
 import { mountResumePrompt } from './resumeprompt';
 import { clearRun, loadRun, saveRun, type RunPhase, type SavedRun } from './runstore';
-import type { HeroClass } from './classes';
+import { evoParamsFor, type HeroClass } from './classes';
+import { mountSubclassSelect } from './subclassselect';
 import {
   advance,
   applyModifier,
@@ -364,6 +365,7 @@ function showFight(run: RunState) {
       wordLevel: wordLevelFor(run),
       passive: run.heroClass.passive,
       spell: run.heroClass.spell,
+      evo: evoParamsFor(run.subclassId),
       wordRng: streamFor(run.seed, 'words', run.fightNumber),
       onWin: (remainingHP, outcome) => {
         tallyOutcome(outcome);
@@ -419,6 +421,11 @@ function afterLevelUp(run: RunState) {
     showEncounter(run);
     return;
   }
+  // One-time mid-run ascension into a subclass.
+  if (shouldAscend(run)) {
+    showAscend(run);
+    return;
+  }
   const event = eventFor(run);
   if (event) {
     showEvent(run, event);
@@ -429,6 +436,26 @@ function afterLevelUp(run: RunState) {
 
 const EVENT_CHANCE = 0.3;
 const ELITE_CHANCE = 0.25;
+const ASCEND_AT = 3; // ascend before the third fight (Classic and Endless alike)
+
+function shouldAscend(run: RunState): boolean {
+  return !run.subclassId && run.fightNumber + 1 === ASCEND_AT;
+}
+
+function showAscend(run: RunState) {
+  persist(run, 'ascend');
+  show((host) =>
+    mountSubclassSelect(host, {
+      classId: run.heroClass.id,
+      player: run.player,
+      onChosen: (subclass) => {
+        subclass.apply(run.player);
+        run.subclassId = subclass.id;
+        afterLevelUp(run);
+      },
+    }),
+  );
+}
 
 // The seeded '?' interlude (if any) preceding the next branch. Returns null on
 // the run's final fight or when the seeded roll declines.
@@ -536,6 +563,7 @@ function resumeRun(saved: SavedRun) {
   run.daily = run.daily ?? false;
   if (saved.phase === 'levelup') showLevelUp(run);
   else if (saved.phase === 'branch') enterBranch(run);
+  else if (saved.phase === 'ascend') showAscend(run);
   else if (saved.phase === 'event') {
     const event = eventFor(run);
     if (event) showEvent(run, event);

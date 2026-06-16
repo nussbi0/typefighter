@@ -17,6 +17,7 @@ import {
 } from './audio';
 import { announce } from './a11y';
 import type { Affliction, Enemy } from './enemies';
+import { BASE_EVO, type EvoParams } from './classes';
 import type { PlayerStats } from './state';
 import type { FightOutcome } from './stats';
 
@@ -44,6 +45,7 @@ export interface FightProps {
   wordLevel: number;
   passive?: string;
   spell?: string;
+  evo?: EvoParams; // subclass tuning of the hero's passive and spell
   wordRng?: Rng;
   onWin: (remainingHP: number, outcome: FightOutcome) => void;
   onLose: (outcome: FightOutcome) => void;
@@ -70,6 +72,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     wordLevel,
     passive,
     spell,
+    evo = BASE_EVO,
     wordRng = unseededRng,
     onWin,
     onLose,
@@ -209,8 +212,8 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   // Enemy status effects + per-class passive bookkeeping
   let poisonStacks = 0;
   let lastPoisonTick = 0;
-  let firstStrike = true; // rogue Ambush
-  let guardUsed = false; // knight Guard
+  let ambushUsed = 0; // rogue Ambush — opening strikes spent
+  let guardsUsed = 0; // knight Guard — early hits halved
   let wordsCompleted = 0; // mage Overload counter
   let tookDamage = false; // for the elite 'flawless' deed
 
@@ -438,14 +441,14 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     if (state.wordCount > 1) comboMult += player.comboBonus;
     let dmg = BASE_DAMAGE * TIER_MULT[tier] * comboMult * player.atkMult;
 
-    // Berserker — Bloodlust: harder you bleed, harder you hit
+    // Berserker — Bloodlust: harder you bleed, harder you hit (Reaver scales harder)
     if (passive === 'bloodlust') {
       const missing = 1 - state.playerHP / player.maxHP;
-      dmg *= 1 + missing * 0.5;
+      dmg *= 1 + missing * evo.bloodlustScale;
     }
-    // Mage — Overload: every fourth strike detonates for double
+    // Mage — Overload: every Nth strike detonates for double (Chronomancer: 3rd)
     wordsCompleted += 1;
-    const overload = passive === 'overload' && wordsCompleted % 4 === 0;
+    const overload = passive === 'overload' && wordsCompleted % evo.overloadEvery === 0;
     if (overload) dmg *= 2;
     // Flame word — an enchanted strike for bonus damage
     if (wordKind === 'flame') dmg *= 1.5;
@@ -454,10 +457,12 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
 
     dmg = Math.round(dmg);
 
-    // Rogue — Ambush: the opening strike of a fight always crits
+    // Rogue — Ambush: the opening strike(s) always crit (Nightblade: first two)
     let crit = Math.random() < player.critChance;
-    if (passive === 'ambush' && firstStrike) crit = true;
-    firstStrike = false;
+    if (passive === 'ambush' && ambushUsed < evo.ambushStrikes) {
+      crit = true;
+      ambushUsed += 1;
+    }
     if (crit) dmg = Math.round(dmg * player.critMult);
 
     // Golem etc — armor blunts the blow
@@ -528,6 +533,12 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
         healAmount = 24;
         break;
     }
+
+    // Subclass tuning: a hotter spell (spellPower) and an added smite (Crusader
+    // turns the damageless Aegis into a strike that also shields).
+    dmg = Math.round(dmg * evo.spellPower);
+    healAmount = Math.round(healAmount * evo.spellPower);
+    if (evo.spellSmite > 0) dmg += Math.round(BASE_DAMAGE * evo.spellSmite * player.atkMult);
 
     if (dmg > 0) {
       if (enemy.armor) dmg = Math.max(1, dmg - enemy.armor);
@@ -775,10 +786,10 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     const dmgMult = PLAYER_DMG_COMBO_MULT[state.wordCount] ?? 1;
     const raw = Math.round(enemy.hitDamage * dmgMult);
     let dmg = Math.max(1, raw - player.defense);
-    // Knight — Guard: the first blow of each fight is halved
-    if (passive === 'guard' && !guardUsed) {
+    // Knight — Guard: early blows are halved (Warden guards twice)
+    if (passive === 'guard' && guardsUsed < evo.guardCharges) {
       dmg = Math.max(1, Math.ceil(dmg / 2));
-      guardUsed = true;
+      guardsUsed += 1;
       showFloat('guard', t('passive_guard'));
     }
     state.playerHP = Math.max(0, state.playerHP - dmg);
@@ -950,8 +961,8 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     }, 1400);
   }
 
-  // Templar — Consecration: enter each fight with renewed vigor
-  if (passive === 'consecration') applyHeal(12);
+  // Templar — Consecration: enter each fight with renewed vigor (Guardian heals more)
+  if (passive === 'consecration') applyHeal(evo.consecrationHeal);
 
   applyI18n();
   renderHP();
