@@ -19,7 +19,17 @@ export interface PlayerStats {
   // Banked incantation charge — persists across fights within a run.
   // Optional so runs saved before mana existed still resume cleanly.
   mana?: number;
+  // Boon school tallies and the sets they've awakened. Optional so older
+  // saves resume cleanly; initialized lazily as boons are claimed.
+  schoolCounts?: Partial<Record<School, number>>;
+  awakenedSets?: School[];
 }
+
+// Boons belong to one of three schools; collecting three of a school awakens
+// its set bonus — a one-time stat surge that rewards leaning into a theme.
+export type School = 'blood' | 'holy' | 'steel';
+export const SCHOOLS: School[] = ['blood', 'holy', 'steel'];
+export const SET_THRESHOLD = 3;
 
 export type Modifier = 'refuge' | 'empower';
 
@@ -142,6 +152,7 @@ export interface Upgrade {
   nameKey: string;
   descKey: string;
   icon: string;
+  school: School;
   apply: (p: PlayerStats) => void;
 }
 
@@ -151,6 +162,7 @@ export const upgrades: Upgrade[] = [
     nameKey: 'upgrade_might',
     descKey: 'upgrade_might_desc',
     icon: '⚔',
+    school: 'steel',
     apply: (p) => {
       p.atkMult = Math.round(p.atkMult * 120) / 100;
     },
@@ -160,6 +172,7 @@ export const upgrades: Upgrade[] = [
     nameKey: 'upgrade_vigor',
     descKey: 'upgrade_vigor_desc',
     icon: '❦',
+    school: 'holy',
     apply: (p) => {
       p.maxHP += 25;
       p.hp = Math.min(p.maxHP, p.hp + 25);
@@ -170,6 +183,7 @@ export const upgrades: Upgrade[] = [
     nameKey: 'upgrade_mend',
     descKey: 'upgrade_mend_desc',
     icon: '✚',
+    school: 'holy',
     apply: (p) => {
       p.hp = p.maxHP;
     },
@@ -179,6 +193,7 @@ export const upgrades: Upgrade[] = [
     nameKey: 'upgrade_bulwark',
     descKey: 'upgrade_bulwark_desc',
     icon: '❖',
+    school: 'steel',
     apply: (p) => {
       p.defense += 4;
     },
@@ -188,6 +203,7 @@ export const upgrades: Upgrade[] = [
     nameKey: 'upgrade_precision',
     descKey: 'upgrade_precision_desc',
     icon: '✦',
+    school: 'blood',
     apply: (p) => {
       p.critChance = Math.min(0.8, Math.round((p.critChance + 0.2) * 100) / 100);
     },
@@ -197,6 +213,7 @@ export const upgrades: Upgrade[] = [
     nameKey: 'upgrade_bloodthirst',
     descKey: 'upgrade_bloodthirst_desc',
     icon: '♥',
+    school: 'blood',
     apply: (p) => {
       p.lifesteal = Math.min(0.6, Math.round((p.lifesteal + 0.15) * 100) / 100);
     },
@@ -206,6 +223,7 @@ export const upgrades: Upgrade[] = [
     nameKey: 'upgrade_frenzy',
     descKey: 'upgrade_frenzy_desc',
     icon: '✺',
+    school: 'blood',
     apply: (p) => {
       p.comboBonus = Math.round((p.comboBonus + 0.4) * 100) / 100;
     },
@@ -215,6 +233,7 @@ export const upgrades: Upgrade[] = [
     nameKey: 'upgrade_focus',
     descKey: 'upgrade_focus_desc',
     icon: '◷',
+    school: 'steel',
     apply: (p) => {
       p.timeFactor = Math.round((p.timeFactor + 0.12) * 100) / 100;
     },
@@ -224,6 +243,7 @@ export const upgrades: Upgrade[] = [
     nameKey: 'upgrade_renewal',
     descKey: 'upgrade_renewal_desc',
     icon: '⟳',
+    school: 'holy',
     apply: (p) => {
       p.regen += 2;
     },
@@ -233,6 +253,7 @@ export const upgrades: Upgrade[] = [
     nameKey: 'upgrade_execution',
     descKey: 'upgrade_execution_desc',
     icon: '☠',
+    school: 'blood',
     apply: (p) => {
       p.critMult = Math.min(4, Math.round((p.critMult + 0.5) * 10) / 10);
     },
@@ -242,6 +263,7 @@ export const upgrades: Upgrade[] = [
     nameKey: 'upgrade_sentinel',
     descKey: 'upgrade_sentinel_desc',
     icon: '⛨',
+    school: 'steel',
     apply: (p) => {
       p.defense += 3;
       p.maxHP += 15;
@@ -249,6 +271,66 @@ export const upgrades: Upgrade[] = [
     },
   },
 ];
+
+export interface SetBonus {
+  school: School;
+  nameKey: string;
+  descKey: string;
+  icon: string;
+  apply: (p: PlayerStats) => void;
+}
+
+// One set per school, awakened at SET_THRESHOLD boons of that school. Effects
+// are pure stat surges (no fight wiring), themed to the school's identity.
+export const setBonuses: Record<School, SetBonus> = {
+  blood: {
+    school: 'blood',
+    nameKey: 'set_blood',
+    descKey: 'set_blood_desc',
+    icon: '🩸',
+    apply: (p) => {
+      p.lifesteal = Math.min(0.6, Math.round((p.lifesteal + 0.15) * 100) / 100);
+      p.critMult = Math.min(4, Math.round((p.critMult + 0.3) * 10) / 10);
+    },
+  },
+  holy: {
+    school: 'holy',
+    nameKey: 'set_holy',
+    descKey: 'set_holy_desc',
+    icon: '☀',
+    apply: (p) => {
+      p.maxHP += 20;
+      p.hp = Math.min(p.maxHP, p.hp + 20);
+      p.regen += 2;
+    },
+  },
+  steel: {
+    school: 'steel',
+    nameKey: 'set_steel',
+    descKey: 'set_steel_desc',
+    icon: '⛨',
+    apply: (p) => {
+      p.defense += 3;
+      p.atkMult = Math.round(p.atkMult * 115) / 100;
+    },
+  },
+};
+
+// Claim a boon: apply it, tally its school, and awaken that school's set the
+// moment the third is collected. Returns the school whose set just awakened
+// (for UI feedback), or null.
+export function applyBoon(player: PlayerStats, up: Upgrade): School | null {
+  up.apply(player);
+  const counts = (player.schoolCounts ??= {});
+  counts[up.school] = (counts[up.school] ?? 0) + 1;
+  const awakened = (player.awakenedSets ??= []);
+  if (counts[up.school]! >= SET_THRESHOLD && !awakened.includes(up.school)) {
+    awakened.push(up.school);
+    setBonuses[up.school].apply(player);
+    return up.school;
+  }
+  return null;
+}
 
 const FAVORED_WEIGHT = 3;
 

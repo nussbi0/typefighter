@@ -3,6 +3,7 @@ import { classes, findClass } from './classes';
 import { streamFor } from './rng';
 import {
   advance,
+  applyBoon,
   applyModifier,
   applyPending,
   classPreview,
@@ -10,8 +11,11 @@ import {
   drawBoons,
   isRunComplete,
   newRun,
+  SCHOOLS,
+  setBonuses,
   upgrades,
   type PlayerStats,
+  type School,
 } from './state';
 
 const knight = findClass('knight');
@@ -140,6 +144,52 @@ describe('upgrade effects', () => {
     const p = apply('sentinel', freshStats());
     expect(p.defense).toBe(3);
     expect(p.maxHP).toBe(115);
+  });
+});
+
+describe('boon schools and sets', () => {
+  const boonsOf = (school: School) => upgrades.filter((u) => u.id && u.school === school);
+
+  it('tags every boon with a known school', () => {
+    for (const up of upgrades) expect(SCHOOLS).toContain(up.school);
+  });
+
+  it('gives every school at least three boons, so each set is reachable', () => {
+    for (const school of SCHOOLS) expect(boonsOf(school).length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('tallies school counts as boons are claimed', () => {
+    const p = freshStats();
+    const blood = boonsOf('blood');
+    applyBoon(p, blood[0]);
+    applyBoon(p, blood[1]);
+    expect(p.schoolCounts?.blood).toBe(2);
+    expect(p.awakenedSets ?? []).not.toContain('blood');
+  });
+
+  it('awakens a set on the third boon of a school and applies its bonus', () => {
+    const p = freshStats();
+    const steel = boonsOf('steel').slice(0, 3);
+    expect(applyBoon(p, steel[0])).toBeNull();
+    expect(applyBoon(p, steel[1])).toBeNull();
+    const defenseBefore = p.defense;
+    const awakened = applyBoon(p, steel[2]);
+    expect(awakened).toBe('steel');
+    expect(p.awakenedSets).toContain('steel');
+    // Iron Resolve grants +3 defense on top of the third boon's own effect.
+    expect(p.defense).toBeGreaterThanOrEqual(defenseBefore + 3);
+  });
+
+  it('awakens each set only once', () => {
+    const p = freshStats();
+    const holy = boonsOf('holy');
+    let awakenings = 0;
+    for (const up of holy) if (applyBoon(p, up)) awakenings += 1;
+    expect(awakenings).toBe(1);
+  });
+
+  it('has a defined set bonus for every school', () => {
+    for (const school of SCHOOLS) expect(setBonuses[school].school).toBe(school);
   });
 });
 

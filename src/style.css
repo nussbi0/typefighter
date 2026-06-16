@@ -133,7 +133,8 @@ body {
   .dodge,
   .afflict,
   .spell-cast,
-  .fizzle {
+  .fizzle,
+  .set-awaken {
     animation: damage-fade 1000ms ease forwards;
   }
   .hp-fill {
@@ -1779,6 +1780,126 @@ body {
   font-style: italic;
   color: var(--ink-light);
   line-height: 1.4;
+}
+
+/* Boon schools — Blood (crimson), Holy (gold), Steel (slate-blue). */
+.school-blood {
+  --school: #9c2a2a;
+}
+.school-holy {
+  --school: #c79a3a;
+}
+.school-steel {
+  --school: #4a6b8a;
+}
+
+.boon-school {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--school);
+  border: 1px solid var(--school);
+  border-radius: 999px;
+}
+
+.boon-card {
+  border-top: 3px solid var(--school, var(--panel-border));
+}
+
+/* Set-progress strip above the boon grid. */
+.set-strip {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 18px;
+  width: 100%;
+}
+
+.set-track {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  opacity: 0.75;
+}
+
+.set-track.awakened {
+  border-color: var(--school);
+  color: var(--school);
+  opacity: 1;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--school) 45%, transparent);
+}
+
+.set-icon {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.set-pips {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.set-pip {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--school, var(--ink-light));
+}
+
+.set-pip.on {
+  background: var(--school, var(--ink-light));
+}
+
+/* Awaken banner — a brief flourish when a set comes online. */
+.set-awaken {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: clamp(36px, 7vw, 80px);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--school);
+  text-shadow: 0 3px 16px rgba(20, 12, 4, 0.7);
+  pointer-events: none;
+  z-index: 30;
+  animation: set-awaken-flash 1100ms ease forwards;
+}
+
+@keyframes set-awaken-flash {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  25% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.1);
+  }
 }
 
 .reroll-button {

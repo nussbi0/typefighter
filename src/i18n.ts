@@ -54,6 +54,16 @@ const messages: Record<Locale, Messages> = {
 
     levelup_reroll: 'Reroll ({n})',
     boon_favored: 'Favored',
+    school_blood: 'Blood',
+    school_holy: 'Holy',
+    school_steel: 'Steel',
+    set_blood: 'Crimson Pact',
+    set_blood_desc: 'Three Blood boons: +15% lifesteal and +0.3× crit damage.',
+    set_holy: 'Sacred Aegis',
+    set_holy_desc: 'Three Holy boons: +20 max HP and +2 regen.',
+    set_steel: 'Iron Resolve',
+    set_steel_desc: 'Three Steel boons: +3 defense and +15% attack.',
+    set_awakened: 'Set awakened!',
     stat_def: 'Def',
     stat_crit: 'Crit',
     stat_critdmg: 'Crit dmg',
@@ -174,6 +184,8 @@ const messages: Record<Locale, Messages> = {
     howto_p9: 'Bosses hurl whole sentences — type the full line before it crashes home.',
     howto_p10:
       'Great and Perfect strikes fill your mana (kept between fights) — press Enter on a full bar to summon your spell word.',
+    howto_p11:
+      'Boons belong to schools (Blood / Holy / Steel) — collect three of one to awaken its set bonus.',
     howto_begin: 'Enter the fray',
 
     classselect_title: 'Choose your hero',
@@ -294,6 +306,16 @@ const messages: Record<Locale, Messages> = {
 
     levelup_reroll: 'Neu mischen ({n})',
     boon_favored: 'Bevorzugt',
+    school_blood: 'Blut',
+    school_holy: 'Heilig',
+    school_steel: 'Stahl',
+    set_blood: 'Blutpakt',
+    set_blood_desc: 'Drei Blut-Gaben: +15% Lebensraub und +0.3× Kritschaden.',
+    set_holy: 'Heilige Aegis',
+    set_holy_desc: 'Drei Heilig-Gaben: +20 max LP und +2 Regen.',
+    set_steel: 'Eiserner Wille',
+    set_steel_desc: 'Drei Stahl-Gaben: +3 Verteidigung und +15% Angriff.',
+    set_awakened: 'Set erweckt!',
     stat_def: 'Vert',
     stat_crit: 'Krit',
     stat_critdmg: 'Kritschaden',
@@ -415,6 +437,8 @@ const messages: Record<Locale, Messages> = {
     howto_p9: 'Bosse schleudern ganze Sätze — tippe die volle Zeile, bevor sie einschlägt.',
     howto_p10:
       'Stark- und Perfekt-Treffer füllen dein Mana (bleibt zwischen Kämpfen erhalten) — drücke Enter bei voller Leiste, um dein Zauberwort zu rufen.',
+    howto_p11:
+      'Gaben gehören zu Schulen (Blut / Heilig / Stahl) — sammle drei einer Schule, um ihren Set-Bonus zu erwecken.',
     howto_begin: 'In den Kampf',
 
     classselect_title: 'Wähle deinen Helden',

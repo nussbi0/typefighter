@@ -1,6 +1,16 @@
 import { t, onLocaleChange, renderTextWithDropCap } from './i18n';
-import { sfxBoon } from './audio';
-import { combatStatLines, drawBoons, type PlayerStats, type Upgrade } from './state';
+import { sfxBoon, sfxManaReady } from './audio';
+import { announce } from './a11y';
+import {
+  applyBoon,
+  combatStatLines,
+  drawBoons,
+  SCHOOLS,
+  setBonuses,
+  SET_THRESHOLD,
+  type PlayerStats,
+  type Upgrade,
+} from './state';
 import { streamFor } from './rng';
 
 export interface LevelUpProps {
@@ -24,6 +34,7 @@ export function mountLevelUp(host: HTMLElement, props: LevelUpProps): () => void
     <div class="scene levelup">
       <h2 class="levelup-title with-drop-cap" data-i18n="levelup_title"></h2>
       <dl class="hero-stats-strip" data-strip></dl>
+      <div class="set-strip" data-sets></div>
       <div class="boon-grid" data-grid></div>
       <button class="reroll-button" type="button" data-reroll></button>
     </div>
@@ -31,6 +42,7 @@ export function mountLevelUp(host: HTMLElement, props: LevelUpProps): () => void
 
   const root = host.querySelector('.levelup') as HTMLElement;
   const strip = root.querySelector('[data-strip]') as HTMLElement;
+  const sets = root.querySelector('[data-sets]') as HTMLElement;
   const grid = root.querySelector('[data-grid]') as HTMLElement;
   const rerollBtn = root.querySelector('[data-reroll]') as HTMLButtonElement;
 
@@ -50,12 +62,32 @@ export function mountLevelUp(host: HTMLElement, props: LevelUpProps): () => void
       .join('');
   }
 
+  function renderSets() {
+    const counts = player.schoolCounts ?? {};
+    const awakened = player.awakenedSets ?? [];
+    sets.innerHTML = SCHOOLS.map((school) => {
+      const bonus = setBonuses[school];
+      const have = Math.min(SET_THRESHOLD, counts[school] ?? 0);
+      const isOn = awakened.includes(school);
+      const pips = Array.from(
+        { length: SET_THRESHOLD },
+        (_, i) => `<span class="set-pip${i < have ? ' on' : ''}"></span>`,
+      ).join('');
+      return `<div class="set-track school-${school}${isOn ? ' awakened' : ''}"
+          title="${t(bonus.descKey)}">
+          <span class="set-icon">${bonus.icon}</span>
+          <span class="set-name" data-i18n="${bonus.nameKey}"></span>
+          <span class="set-pips">${pips}</span>
+        </div>`;
+    }).join('');
+  }
+
   function renderBoons() {
     grid.innerHTML = '';
     current.forEach((up, i) => {
       const favored = favoredBoons.includes(up.id);
       const card = document.createElement('button');
-      card.className = favored ? 'boon-card favored' : 'boon-card';
+      card.className = `boon-card school-${up.school}${favored ? ' favored' : ''}`;
       card.type = 'button';
       card.dataset.upgrade = up.id;
       card.innerHTML = `
@@ -67,6 +99,7 @@ export function mountLevelUp(host: HTMLElement, props: LevelUpProps): () => void
         <div class="boon-icon">${up.icon}</div>
         <div class="boon-name with-drop-cap" data-i18n="${up.nameKey}"></div>
         <div class="boon-desc" data-i18n="${up.descKey}"></div>
+        <div class="boon-school" data-i18n="school_${up.school}"></div>
         ${favored ? '<div class="boon-favored">✦ <span data-i18n="boon_favored"></span></div>' : ''}
       `;
       card.addEventListener('click', () => pick(up));
@@ -92,8 +125,22 @@ export function mountLevelUp(host: HTMLElement, props: LevelUpProps): () => void
   function pick(up: Upgrade) {
     if (resolved) return;
     resolved = true;
+    const awakened = applyBoon(player, up);
+    if (awakened) {
+      // A set just came online — savor it before moving on.
+      sfxManaReady();
+      renderSets();
+      applyI18n();
+      const bonus = setBonuses[awakened];
+      announce(`${t(bonus.nameKey)} — ${t(bonus.descKey)}`);
+      const banner = document.createElement('div');
+      banner.className = `set-awaken school-${awakened}`;
+      renderTextWithDropCap(banner, t(bonus.nameKey));
+      root.appendChild(banner);
+      window.setTimeout(() => onChosen(), 1100);
+      return;
+    }
     sfxBoon();
-    up.apply(player);
     onChosen();
   }
 
@@ -122,11 +169,13 @@ export function mountLevelUp(host: HTMLElement, props: LevelUpProps): () => void
   }
 
   renderStrip();
+  renderSets();
   renderBoons();
   renderReroll();
   applyI18n();
   const offLocale = onLocaleChange(() => {
     renderReroll();
+    renderSets();
     applyI18n();
   });
   rerollBtn.addEventListener('click', reroll);
