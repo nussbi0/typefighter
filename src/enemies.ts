@@ -32,6 +32,94 @@ export interface Enemy {
   lifesteal?: number; // fraction of damage dealt to you that heals the foe
   poison?: number; // stacks applied when it hits you (ticking damage over time)
   afflict?: Affliction; // typing debuff its hits inflict for a few words
+  // Elite fields — a seeded named variant with a modifier and an optional deed.
+  elite?: boolean;
+  eliteName?: string; // proper noun, shared across locales
+  eliteModifier?: EliteModifier;
+  deed?: Deed;
+  deedThresholdMs?: number; // time budget for the 'swift' deed
+}
+
+// A modifier sharpens an elite in one direction; a deed is an optional feat
+// (no hits / no typos / a swift kill) that upgrades the fight's reward.
+export type EliteModifier = 'ferocious' | 'ironhide' | 'swift' | 'venomous' | 'relentless';
+export type Deed = 'flawless' | 'precise' | 'swift';
+
+export const ELITE_MODIFIERS: EliteModifier[] = [
+  'ferocious',
+  'ironhide',
+  'swift',
+  'venomous',
+  'relentless',
+];
+export const DEEDS: Deed[] = ['flawless', 'precise', 'swift'];
+
+// Language-neutral fantasy proper nouns: "<Name> the <Epithet>".
+const ELITE_NAMES = [
+  'Vargash',
+  'Mordrak',
+  'Khazûl',
+  'Sythara',
+  'Orloth',
+  'Nephara',
+  'Drussk',
+  'Thaldrin',
+  'Vossk',
+  'Malqar',
+  'Greymaw',
+  'Ulvenna',
+];
+const ELITE_EPITHETS = [
+  'Unbroken',
+  'Devourer',
+  'Pale',
+  'Ravager',
+  'Thrice-Cursed',
+  'Bloodmaw',
+  'Stormborn',
+  'Gravewalker',
+  'Direclaw',
+  'Ashen',
+  'Wretched',
+  'Hollow',
+];
+
+// Promote a base foe to a seeded elite: tougher, named, with a modifier and a
+// deed. Draw order is fixed (name, epithet, modifier, deed) for reproducibility.
+export function makeElite(base: Enemy, rng: Rng = unseededRng): Enemy {
+  const name = `${rng.pick(ELITE_NAMES)} the ${rng.pick(ELITE_EPITHETS)}`;
+  const eliteModifier = rng.pick(ELITE_MODIFIERS);
+  const deed = rng.pick(DEEDS);
+  const e: Enemy = {
+    ...base,
+    id: `${base.id}*elite`,
+    elite: true,
+    eliteName: name,
+    eliteModifier,
+    deed,
+    maxHP: Math.round(base.maxHP * 1.35),
+    deedThresholdMs: Math.round(base.maxHP * 90),
+  };
+  switch (eliteModifier) {
+    case 'ferocious':
+      e.hitDamage = Math.round(base.hitDamage * 1.3);
+      break;
+    case 'ironhide':
+      e.armor = (base.armor ?? 0) + 6;
+      break;
+    case 'swift':
+      e.msPerChar = Math.round(base.msPerChar * 0.8);
+      e.spawnDelayMs = Math.round(base.spawnDelayMs * 0.82);
+      break;
+    case 'venomous':
+      e.poison = (base.poison ?? 0) + 4;
+      break;
+    case 'relentless':
+      e.comboChance = Math.min(0.9, base.comboChance + 0.25);
+      e.comboMaxWords = Math.max(base.comboMaxWords, 3);
+      break;
+  }
+  return e;
 }
 
 export const roster: Enemy[] = [
@@ -319,6 +407,18 @@ export function enemyAbilities(enemy: Enemy): AbilityLine[] {
   if (enemy.afflict)
     lines.push({ key: `ability_${enemy.afflict}`, tip: `ability_${enemy.afflict}_tip` });
   return lines;
+}
+
+// An elite's modifier shown as a tag (separate from its concrete abilities).
+export function eliteModifierLine(enemy: Enemy): AbilityLine | null {
+  if (!enemy.eliteModifier) return null;
+  return { key: `elitemod_${enemy.eliteModifier}`, tip: `elitemod_${enemy.eliteModifier}_tip` };
+}
+
+// The deed offered for this elite — an optional feat that upgrades the reward.
+export function deedLine(enemy: Enemy): AbilityLine | null {
+  if (!enemy.deed) return null;
+  return { key: `deed_${enemy.deed}`, tip: `deed_${enemy.deed}_tip` };
 }
 
 export function isEndlessBossDepth(depth: number): boolean {

@@ -85,7 +85,8 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
           <span class="corner corner-br"></span>
           <div class="avatar enemy-avatar">${enemy.sprite}</div>
           <div class="meta">
-            <div class="name with-drop-cap" data-i18n="${enemy.nameKey}"></div>
+            ${enemy.elite ? '<div class="elite-badge" data-i18n="elite_badge"></div>' : ''}
+            <div class="name with-drop-cap"${enemy.elite ? '' : ` data-i18n="${enemy.nameKey}"`}></div>
             <div class="hp-bar"><div class="hp-fill enemy-hp"></div></div>
             <div class="hp-text enemy-hp-text"></div>
           </div>
@@ -152,6 +153,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     floater: root.querySelector('.floater') as HTMLElement,
     banner: root.querySelector('.banner') as HTMLElement,
     enemyCombatant: root.querySelector('.combatant.enemy') as HTMLElement,
+    enemyName: root.querySelector('.combatant.enemy .name') as HTMLElement,
     enemyAvatar: root.querySelector('.enemy-avatar') as HTMLElement,
     playerAvatar: root.querySelector('.player-avatar') as HTMLElement,
     momentumFill: root.querySelector('.momentum-fill') as HTMLElement,
@@ -210,6 +212,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   let firstStrike = true; // rogue Ambush
   let guardUsed = false; // knight Guard
   let wordsCompleted = 0; // mage Overload counter
+  let tookDamage = false; // for the elite 'flawless' deed
 
   const POISON_INTERVAL_MS = 1000;
 
@@ -222,6 +225,9 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
         el.textContent = text;
       }
     });
+    // The elite name is a locale-neutral proper noun, so it carries no
+    // data-i18n; render it directly (and re-render on locale change).
+    if (enemy.elite && enemy.eliteName) renderTextWithDropCap(els.enemyName, enemy.eliteName);
   }
 
   const offLocale = onLocaleChange(() => {
@@ -565,6 +571,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   function resolveCursed() {
     const dmg = Math.max(1, Math.round(enemy.hitDamage * 0.7));
     state.playerHP = Math.max(0, state.playerHP - dmg);
+    tookDamage = true;
     resetMomentum();
     sfxHurt();
     showHit('player', dmg);
@@ -712,6 +719,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
       lastPoisonTick = now;
       const tick = poisonStacks;
       state.playerHP = Math.max(0, state.playerHP - tick);
+      tookDamage = true;
       showFloat('poison', `-${tick} ☠`);
       poisonStacks -= 1;
       renderHP();
@@ -774,6 +782,7 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
       showFloat('guard', t('passive_guard'));
     }
     state.playerHP = Math.max(0, state.playerHP - dmg);
+    tookDamage = true;
     resetMomentum();
     sfxHurt();
     showHit('player', dmg);
@@ -896,11 +905,23 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     setTimeout(() => banner.remove(), 1600);
   }
 
+  function deedFulfilled(elapsedMs: number): boolean {
+    if (!enemy.deed) return false;
+    switch (enemy.deed) {
+      case 'flawless':
+        return !tookDamage;
+      case 'precise':
+        return mistakes === 0;
+      case 'swift':
+        return enemy.deedThresholdMs != null && elapsedMs <= enemy.deedThresholdMs;
+    }
+  }
+
   function computeOutcome(): FightOutcome {
     const elapsedMs = firstSpawnAt ? performance.now() - firstSpawnAt : 0;
     const minutes = elapsedMs / 60000;
     const wpm = minutes > 0 ? Math.round(correctChars / 5 / minutes) : 0;
-    return { wpm, correctChars, mistakes, elapsedMs };
+    return { wpm, correctChars, mistakes, elapsedMs, deedMet: deedFulfilled(elapsedMs) };
   }
 
   function endFight(result: 'won' | 'lost') {
@@ -917,6 +938,12 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     resolved = true;
     cancelSpawn();
     const outcome = computeOutcome();
+    // An elite deed fulfilled on victory earns a callout.
+    if (result === 'won' && enemy.deed) {
+      const msg = outcome.deedMet ? t('deed_met') : t('deed_failed');
+      showFloat(outcome.deedMet ? 'deed-met' : 'deed-failed', msg);
+      announce(msg);
+    }
     window.setTimeout(() => {
       if (result === 'won') onWin(state.playerHP, outcome);
       else onLose(outcome);

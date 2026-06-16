@@ -41,7 +41,14 @@ import {
   type FightOutcome,
   type SeedResult,
 } from './stats';
-import { endlessCandidates, enemiesByTier, findEnemy, RUN_LENGTH, type Enemy } from './enemies';
+import {
+  endlessCandidates,
+  enemiesByTier,
+  findEnemy,
+  makeElite,
+  RUN_LENGTH,
+  type Enemy,
+} from './enemies';
 import { initAudioPrefs, isMuted, setMuted, sfxType } from './audio';
 import { dailySeed, randomSeed, streamFor } from './rng';
 import { fetchLeaderboard, type LeaderboardData } from './leaderboard';
@@ -360,6 +367,11 @@ function showFight(run: RunState) {
         tallyOutcome(outcome);
         recordFightOutcome(outcome, getLocale());
         run.player.hp = remainingHP;
+        // A completed elite deed: heal and bank extra rerolls for the next boon.
+        if (outcome.deedMet) {
+          run.player.hp = Math.min(run.player.maxHP, run.player.hp + 25);
+          run.bonusRerolls = (run.bonusRerolls ?? 0) + 2;
+        }
         advance(run);
         afterFightWin(run);
       },
@@ -382,12 +394,15 @@ function afterFightWin(run: RunState) {
 
 function showLevelUp(run: RunState) {
   persist(run, 'levelup');
+  const bonusRerolls = run.bonusRerolls ?? 0;
+  run.bonusRerolls = 0;
   show((host) =>
     mountLevelUp(host, {
       player: run.player,
       favoredBoons: run.heroClass.favoredBoons,
       seed: run.seed,
       depth: run.fightNumber,
+      bonusRerolls,
       onChosen: () => afterLevelUp(run),
     }),
   );
@@ -405,12 +420,22 @@ function afterLevelUp(run: RunState) {
   enterBranch(run);
 }
 
+const ELITE_CHANCE = 0.25;
+
 function enterBranch(run: RunState) {
   const nextFightNumber = run.fightNumber + 1;
   const candidates =
     run.mode === 'endless'
       ? endlessCandidates(nextFightNumber, streamFor(run.seed, 'foes', nextFightNumber))
-      : enemiesByTier(nextFightNumber);
+      : enemiesByTier(nextFightNumber).slice();
+  // Occasionally promote one non-boss option to a seeded elite — a named foe
+  // with a modifier and an optional deed that upgrades the reward.
+  const eliteRng = streamFor(run.seed, 'elite', nextFightNumber);
+  const plain = candidates.map((c, i) => (c.isBoss ? -1 : i)).filter((i) => i >= 0);
+  if (plain.length > 0 && eliteRng.next() < ELITE_CHANCE) {
+    const idx = plain[eliteRng.int(plain.length)];
+    candidates[idx] = makeElite(candidates[idx], eliteRng);
+  }
   persist(run, 'branch');
   showBranch(run, nextFightNumber, candidates);
 }

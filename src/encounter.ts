@@ -1,12 +1,15 @@
 import { t, onLocaleChange, renderTextWithDropCap } from './i18n';
-import { enemyAbilities, RUN_LENGTH, type Enemy } from './enemies';
+import { deedLine, eliteModifierLine, enemyAbilities, RUN_LENGTH, type Enemy } from './enemies';
 import { combatStatLines, type PlayerStats } from './state';
 
 function abilityTagsHTML(enemy: Enemy): string {
-  return enemyAbilities(enemy)
+  const lines = [...enemyAbilities(enemy)];
+  const mod = eliteModifierLine(enemy);
+  if (mod) lines.unshift(mod);
+  return lines
     .map(
       (a) =>
-        `<span class="ability-tag" title="${t(a.tip)}">${t(a.key, a.value != null ? { n: a.value } : undefined)}</span>`,
+        `<span class="ability-tag${a.key.startsWith('elitemod_') ? ' elite-tag' : ''}" title="${t(a.tip)}">${t(a.key, a.value != null ? { n: a.value } : undefined)}</span>`,
     )
     .join('');
 }
@@ -62,13 +65,15 @@ export function mountEncounter(host: HTMLElement, props: EncounterProps): () => 
           <span class="corner corner-bl"></span>
           <span class="corner corner-br"></span>
           <div class="preview-avatar">${enemy.sprite}</div>
-          <div class="preview-name with-drop-cap" data-i18n="${enemy.nameKey}"></div>
+          ${enemy.elite ? '<div class="elite-badge" data-i18n="elite_badge"></div>' : ''}
+          <div class="preview-name with-drop-cap"${enemy.elite ? '' : ` data-i18n="${enemy.nameKey}"`}></div>
           <dl class="stat-list">
             <div class="stat-row"><dt data-i18n="stat_hp"></dt><dd>${enemy.maxHP}</dd></div>
             <div class="stat-row"><dt data-i18n="stat_damage"></dt><dd>${enemy.hitDamage}</dd></div>
             <div class="stat-row"><dt data-i18n="stat_speed"></dt><dd>${formatSpeed(enemy.msPerChar)}</dd></div>
           </dl>
           <div class="ability-tags" data-abilities></div>
+          <div class="deed-line" data-deed></div>
         </div>
 
         <div class="vs vs-large" aria-label="versus">⚔</div>
@@ -103,6 +108,8 @@ export function mountEncounter(host: HTMLElement, props: EncounterProps): () => 
   const flavorEl = root.querySelector('[data-flavor]') as HTMLElement;
   const boonsEl = root.querySelector('[data-boons]') as HTMLElement;
   const abilitiesEl = root.querySelector('[data-abilities]') as HTMLElement;
+  const deedEl = root.querySelector('[data-deed]') as HTMLElement;
+  const nameEl = root.querySelector('.enemy-preview .preview-name') as HTMLElement;
   const seedBar = root.querySelector('[data-seedbar]') as HTMLElement;
   const seedText = root.querySelector('[data-seedtext]') as HTMLElement;
   const shareBtn = root.querySelector('[data-share]') as HTMLButtonElement;
@@ -118,6 +125,11 @@ export function mountEncounter(host: HTMLElement, props: EncounterProps): () => 
       }
     });
     abilitiesEl.innerHTML = abilityTagsHTML(enemy);
+    if (enemy.elite && enemy.eliteName) renderTextWithDropCap(nameEl, enemy.eliteName);
+    const deed = deedLine(enemy);
+    deedEl.innerHTML = deed
+      ? `<span class="deed-tag" title="${t(deed.tip)}">✶ ${t('deed_label')}: ${t(deed.key)}</span>`
+      : '';
     if (seed) {
       seedBar.hidden = false;
       seedText.textContent = daily ? t('seed_daily', { seed }) : t('seed_label', { seed });
@@ -127,9 +139,12 @@ export function mountEncounter(host: HTMLElement, props: EncounterProps): () => 
     counterEl.textContent = endless
       ? t('encounter_depth', { n: encounterNumber })
       : t('encounter_title', { n: encounterNumber, total: RUN_LENGTH });
-    const flavorText = enemy.isBoss
-      ? t('encounter_boss')
-      : t('encounter_appears', { enemy: t(enemy.nameKey) });
+    const flavorText =
+      enemy.elite && enemy.eliteName
+        ? t('encounter_elite', { enemy: enemy.eliteName })
+        : enemy.isBoss
+          ? t('encounter_boss')
+          : t('encounter_appears', { enemy: t(enemy.nameKey) });
     renderTextWithDropCap(flavorEl, flavorText);
 
     const chips: string[] = [];

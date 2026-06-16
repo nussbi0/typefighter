@@ -7,6 +7,7 @@ export interface FightOutcome {
   correctChars: number;
   mistakes: number;
   elapsedMs: number;
+  deedMet?: boolean; // an elite's optional feat was fulfilled this fight
 }
 
 // A complete, comparable record for one seeded run.

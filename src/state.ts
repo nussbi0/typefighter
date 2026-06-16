@@ -44,6 +44,8 @@ export interface RunState {
   upcomingEnemy: Enemy;
   pendingHeal: number;
   pendingMaxHPBoost: number;
+  // Extra rerolls granted by a completed elite deed, spent at the next level-up.
+  bonusRerolls?: number;
 }
 
 const STARTING_HP = 100;

@@ -1,10 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import {
+  deedLine,
+  DEEDS,
+  eliteModifierLine,
+  ELITE_MODIFIERS,
   endlessCandidates,
   enemiesByTier,
   enemyAbilities,
   findEnemy,
   isEndlessBossDepth,
+  makeElite,
   scaleEnemy,
 } from './enemies';
 import { streamFor } from './rng';
@@ -103,6 +108,51 @@ describe('afflictions', () => {
   it('survive depth scaling unchanged', () => {
     expect(scaleEnemy(findEnemy('sorcerer'), 9).afflict).toBe('scramble');
     expect(scaleEnemy(findEnemy('goblin'), 9).afflict).toBeUndefined();
+  });
+});
+
+describe('makeElite', () => {
+  it('names the elite, picks a known modifier and deed, and toughens it', () => {
+    const base = findEnemy('orc');
+    const elite = makeElite(base, streamFor('e', 1));
+    expect(elite.elite).toBe(true);
+    expect(elite.eliteName).toMatch(/ the /);
+    expect(ELITE_MODIFIERS).toContain(elite.eliteModifier);
+    expect(DEEDS).toContain(elite.deed);
+    expect(elite.maxHP).toBeGreaterThan(base.maxHP);
+  });
+
+  it('is reproducible from a seeded stream', () => {
+    const a = makeElite(findEnemy('orc'), streamFor('s', 'elite', 3));
+    const b = makeElite(findEnemy('orc'), streamFor('s', 'elite', 3));
+    expect(a.eliteName).toBe(b.eliteName);
+    expect(a.eliteModifier).toBe(b.eliteModifier);
+    expect(a.deed).toBe(b.deed);
+  });
+
+  it('applies the chosen modifier to stats', () => {
+    const base = findEnemy('orc');
+    // Sweep seeds until each modifier shows, then assert its stat effect.
+    const seen = new Set<string>();
+    for (let i = 0; i < 200 && seen.size < ELITE_MODIFIERS.length; i++) {
+      const e = makeElite(base, streamFor('sweep', i));
+      if (seen.has(e.eliteModifier!)) continue;
+      seen.add(e.eliteModifier!);
+      if (e.eliteModifier === 'ferocious') expect(e.hitDamage).toBeGreaterThan(base.hitDamage);
+      if (e.eliteModifier === 'ironhide') expect(e.armor ?? 0).toBeGreaterThan(base.armor ?? 0);
+      if (e.eliteModifier === 'swift') expect(e.msPerChar).toBeLessThan(base.msPerChar);
+      if (e.eliteModifier === 'venomous') expect(e.poison ?? 0).toBeGreaterThan(base.poison ?? 0);
+      if (e.eliteModifier === 'relentless') expect(e.comboChance).toBeGreaterThan(base.comboChance);
+    }
+    expect(seen.size).toBe(ELITE_MODIFIERS.length);
+  });
+
+  it('exposes modifier and deed lines for elites and nothing for plain foes', () => {
+    const elite = makeElite(findEnemy('orc'), streamFor('e', 9));
+    expect(eliteModifierLine(elite)?.key).toBe(`elitemod_${elite.eliteModifier}`);
+    expect(deedLine(elite)?.key).toBe(`deed_${elite.deed}`);
+    expect(eliteModifierLine(findEnemy('orc'))).toBeNull();
+    expect(deedLine(findEnemy('orc'))).toBeNull();
   });
 });
 

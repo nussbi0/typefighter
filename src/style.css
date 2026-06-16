@@ -134,7 +134,9 @@ body {
   .afflict,
   .spell-cast,
   .fizzle,
-  .set-awaken {
+  .set-awaken,
+  .deed-met,
+  .deed-failed {
     animation: damage-fade 1000ms ease forwards;
   }
   .hp-fill {
@@ -2431,6 +2433,71 @@ body {
   background: rgba(106, 15, 15, 0.1);
   border: 1px solid var(--crimson);
   border-radius: 999px;
+}
+
+/* Elite foes — a violet badge, a violet modifier tag, and a deed pill. */
+.elite-badge {
+  align-self: center;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #2a1840;
+  background: linear-gradient(180deg, #b89cff, #8a5cd0);
+  padding: 2px 12px;
+  border: 1px solid #5a3a8a;
+  border-radius: 999px;
+  box-shadow: 0 0 12px rgba(138, 92, 208, 0.5);
+}
+
+.ability-tag.elite-tag {
+  color: #6a3fa8;
+  background: rgba(138, 92, 208, 0.12);
+  border-color: #8a5cd0;
+}
+
+.deed-line:empty {
+  display: none;
+}
+
+.deed-tag {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #7a5a1a;
+  padding: 3px 11px;
+  background: rgba(243, 197, 74, 0.14);
+  border: 1px dashed var(--gold-dim);
+  border-radius: 999px;
+}
+
+.deed-met,
+.deed-failed {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: 1px 1px 0 var(--ink);
+  animation: heal-float 1400ms ease-out forwards;
+}
+.deed-met {
+  color: var(--gold-bright);
+}
+.deed-failed {
+  color: var(--ink-muted);
+  text-shadow: 1px 1px 0 var(--parchment-1);
+}
+
+.combatant.enemy .elite-badge {
+  margin-bottom: 4px;
 }
 
 .class-stats {

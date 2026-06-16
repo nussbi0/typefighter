@@ -18,14 +18,16 @@ export interface LevelUpProps {
   favoredBoons: string[];
   seed: string;
   depth: number;
+  bonusRerolls?: number;
   onChosen: () => void;
 }
 
 const DRAW_COUNT = 3;
-const MAX_REROLLS = 1;
+const BASE_REROLLS = 1;
 
 export function mountLevelUp(host: HTMLElement, props: LevelUpProps): () => void {
-  const { player, favoredBoons, seed, depth, onChosen } = props;
+  const { player, favoredBoons, seed, depth, bonusRerolls = 0, onChosen } = props;
+  const maxRerolls = BASE_REROLLS + bonusRerolls;
 
   const drawForReroll = (reroll: number) =>
     drawBoons(DRAW_COUNT, favoredBoons, streamFor(seed, 'boons', depth, reroll));
@@ -47,7 +49,7 @@ export function mountLevelUp(host: HTMLElement, props: LevelUpProps): () => void
   const rerollBtn = root.querySelector('[data-reroll]') as HTMLButtonElement;
 
   let current: Upgrade[] = drawForReroll(0);
-  let rerollsLeft = MAX_REROLLS;
+  let rerollsLeft = maxRerolls;
   let resolved = false;
 
   function renderStrip() {
@@ -115,7 +117,7 @@ export function mountLevelUp(host: HTMLElement, props: LevelUpProps): () => void
   function reroll() {
     if (rerollsLeft <= 0 || resolved) return;
     rerollsLeft -= 1;
-    current = drawForReroll(MAX_REROLLS - rerollsLeft);
+    current = drawForReroll(maxRerolls - rerollsLeft);
     renderBoons();
     renderReroll();
     applyI18n();

@@ -1,5 +1,5 @@
 import { onLocaleChange, renderTextWithDropCap, t } from './i18n';
-import { enemyAbilities, type Enemy } from './enemies';
+import { deedLine, eliteModifierLine, enemyAbilities, type Enemy } from './enemies';
 import { unseededRng, type Rng } from './rng';
 import type { Modifier, PlayerStats } from './state';
 
@@ -66,14 +66,16 @@ export function mountBranch(host: HTMLElement, props: BranchProps): () => void {
       <span class="corner corner-bl"></span>
       <span class="corner corner-br"></span>
       <span class="boon-shortcut" aria-hidden="true">${i + 1}</span>
+      ${opt.enemy.elite ? '<div class="elite-badge" data-i18n="elite_badge"></div>' : ''}
       <div class="branch-avatar">${opt.enemy.sprite}</div>
-      <div class="branch-name with-drop-cap" data-i18n="${opt.enemy.nameKey}"></div>
+      <div class="branch-name with-drop-cap"${opt.enemy.elite ? '' : ` data-i18n="${opt.enemy.nameKey}"`}></div>
       <dl class="stat-list branch-stats">
         <div class="stat-row"><dt data-i18n="stat_hp"></dt><dd>${opt.enemy.maxHP}</dd></div>
         <div class="stat-row"><dt data-i18n="stat_damage"></dt><dd>${opt.enemy.hitDamage}</dd></div>
         <div class="stat-row"><dt data-i18n="stat_speed"></dt><dd>${speedStars(opt.enemy.msPerChar)}</dd></div>
       </dl>
       <div class="ability-tags" data-abilities></div>
+      <div class="deed-line" data-deed></div>
       <div class="branch-modifier">
         <span class="branch-modifier-icon" aria-hidden="true">${modIcon(opt.modifier)}</span>
         <div class="branch-modifier-text">
@@ -103,14 +105,30 @@ export function mountBranch(host: HTMLElement, props: BranchProps): () => void {
       }
     });
     options.forEach((opt, i) => {
-      const tags = grid.querySelector(`[data-option="${i}"] [data-abilities]`);
+      const card = grid.querySelector(`[data-option="${i}"]`);
+      const tags = card?.querySelector('[data-abilities]');
       if (tags) {
-        tags.innerHTML = enemyAbilities(opt.enemy)
+        const lines = [...enemyAbilities(opt.enemy)];
+        const mod = eliteModifierLine(opt.enemy);
+        if (mod) lines.unshift(mod);
+        tags.innerHTML = lines
           .map(
             (a) =>
-              `<span class="ability-tag" title="${t(a.tip)}">${t(a.key, a.value != null ? { n: a.value } : undefined)}</span>`,
+              `<span class="ability-tag${a.key.startsWith('elitemod_') ? ' elite-tag' : ''}" title="${t(a.tip)}">${t(a.key, a.value != null ? { n: a.value } : undefined)}</span>`,
           )
           .join('');
+      }
+      const deedEl = card?.querySelector('[data-deed]') as HTMLElement | null;
+      if (deedEl) {
+        const deed = deedLine(opt.enemy);
+        deedEl.innerHTML = deed
+          ? `<span class="deed-tag" title="${t(deed.tip)}">✶ ${t('deed_label')}: ${t(deed.key)}</span>`
+          : '';
+      }
+      // Elite names are locale-neutral proper nouns rendered directly.
+      if (opt.enemy.elite && opt.enemy.eliteName) {
+        const nameEl = card?.querySelector('.branch-name') as HTMLElement | null;
+        if (nameEl) renderTextWithDropCap(nameEl, opt.enemy.eliteName);
       }
     });
   }
