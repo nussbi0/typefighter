@@ -540,6 +540,7 @@ function showRelicDraft(run: RunState) {
         applyRelic(run.player, relic);
         showLevelUp(run);
       },
+      onSkip: () => showLevelUp(run),
     }),
   );
   renderBuildBar(run);

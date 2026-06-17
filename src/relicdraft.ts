@@ -5,21 +5,24 @@ import type { Relic } from './relics';
 export interface RelicDraftProps {
   options: Relic[];
   onChosen: (relic: Relic) => void;
+  onSkip: () => void;
 }
 
 export function mountRelicDraft(host: HTMLElement, props: RelicDraftProps): () => void {
-  const { options, onChosen } = props;
+  const { options, onChosen, onSkip } = props;
 
   host.innerHTML = `
     <div class="scene relic-draft">
       <h2 class="relic-title with-drop-cap" data-i18n="relic_title"></h2>
       <p class="relic-subtitle" data-i18n="relic_subtitle"></p>
       <div class="relic-grid"></div>
+      <button class="reroll-button relic-skip" type="button" data-i18n="relic_skip"></button>
     </div>
   `;
 
   const root = host.querySelector('.relic-draft') as HTMLElement;
   const grid = root.querySelector('.relic-grid') as HTMLElement;
+  const skipBtn = root.querySelector('.relic-skip') as HTMLButtonElement;
 
   options.forEach((relic, i) => {
     const card = document.createElement('button');
@@ -47,6 +50,11 @@ export function mountRelicDraft(host: HTMLElement, props: RelicDraftProps): () =
     sfxBoon();
     onChosen(relic);
   }
+  function skip() {
+    if (resolved) return;
+    resolved = true;
+    onSkip();
+  }
 
   function applyI18n() {
     root.querySelectorAll<HTMLElement>('[data-i18n]').forEach((el) => {
@@ -60,6 +68,11 @@ export function mountRelicDraft(host: HTMLElement, props: RelicDraftProps): () =
   }
 
   function onKey(e: KeyboardEvent) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      skip();
+      return;
+    }
     const idx = ['1', '2', '3'].indexOf(e.key);
     if (idx >= 0 && options[idx]) {
       e.preventDefault();
@@ -69,6 +82,7 @@ export function mountRelicDraft(host: HTMLElement, props: RelicDraftProps): () =
 
   applyI18n();
   const offLocale = onLocaleChange(applyI18n);
+  skipBtn.addEventListener('click', skip);
   document.addEventListener('keydown', onKey);
   (grid.querySelector('.relic-card') as HTMLButtonElement | null)?.focus();
 

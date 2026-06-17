@@ -316,7 +316,8 @@ const messages: Record<Locale, Messages> = {
     deed_failed: 'Deed failed',
 
     relic_title: 'A Relic of Power',
-    relic_subtitle: 'The elite yields a rare treasure. Choose one to carry.',
+    relic_subtitle: 'The elite yields a rare treasure. Choose one to carry, or leave it.',
+    relic_skip: 'Leave it',
     relic_metronome: 'Metronome',
     relic_metronome_desc: 'Every 13th strike is a guaranteed critical hit.',
     relic_glass_cannon: 'Glass Cannon',
@@ -683,7 +684,8 @@ const messages: Record<Locale, Messages> = {
     deed_failed: 'Großtat verfehlt',
 
     relic_title: 'Ein Relikt der Macht',
-    relic_subtitle: 'Der Elite-Gegner gibt einen seltenen Schatz frei. Wähle eines.',
+    relic_subtitle: 'Der Elite-Gegner gibt einen seltenen Schatz frei. Wähle eines — oder lass es.',
+    relic_skip: 'Lass es',
     relic_metronome: 'Metronom',
     relic_metronome_desc: 'Jeder 13. Schlag ist ein garantierter kritischer Treffer.',
     relic_glass_cannon: 'Glaskanone',
