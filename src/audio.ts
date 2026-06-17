@@ -105,7 +105,7 @@ function noise(dur: number, gain: number, cutoff: number, highpass = false): voi
 
 // --- Sound effects ----------------------------------------------------------
 
-const STRIKE_FREQ: Record<Tier, number> = { perfect: 540, great: 450, good: 370 };
+const STRIKE_FREQ: Record<Tier, number> = { perfect: 540, great: 450, good: 370, sloppy: 280 };
 
 export function sfxType(): void {
   tone({ freq: 880, dur: 0.025, type: 'square', gain: 0.04 });

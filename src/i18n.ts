@@ -165,6 +165,7 @@ const messages: Record<Locale, Messages> = {
 
     tier_perfect: 'Perfect!',
     tier_great: 'Great!',
+    tier_sloppy: 'Sloppy!',
     enraged: 'Enraged!',
     ward_gained: 'Warded',
     ward_block: 'Blocked!',
@@ -530,6 +531,7 @@ const messages: Record<Locale, Messages> = {
 
     tier_perfect: 'Perfekt!',
     tier_great: 'Stark!',
+    tier_sloppy: 'Schlampig!',
     enraged: 'Wütend!',
     ward_gained: 'Geschützt',
     ward_block: 'Geblockt!',

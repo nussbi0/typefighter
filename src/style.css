@@ -1410,6 +1410,17 @@ body {
   text-shadow: 1px 1px 0 var(--crimson);
 }
 
+/* Sloppy — a mashed/inaccurate strike. Muted and small, so it reads as a
+   reprimand rather than a reward. */
+.damage.tier-sloppy {
+  font-size: 22px;
+  color: var(--ink-muted);
+  opacity: 0.85;
+}
+.damage.tier-sloppy .tier-label {
+  color: var(--ink-muted);
+}
+
 .damage.crit {
   color: var(--gold-bright);
   text-shadow:

@@ -28,12 +28,31 @@ const MIN_DURATION_MS = 1500;
 const TIER_PERFECT_MAX = 0.32;
 const TIER_GREAT_MAX = 0.62;
 
-export type Tier = 'perfect' | 'great' | 'good';
+// A strike is only as strong as it is clean: per-word accuracy (correct keys /
+// total keys) caps the tier a strike can reach, no matter how fast it landed.
+// This defeats key-mashing — a sloppy completion deals a fraction of the damage.
+export type Tier = 'perfect' | 'great' | 'good' | 'sloppy';
+
+const TIER_RANK: Record<Tier, number> = { sloppy: 0, good: 1, great: 2, perfect: 3 };
+
+// Accuracy thresholds for the tier ceiling (ratio-based, so long phrases aren't
+// unfairly punished by a stray typo).
+export function accuracyCap(accuracy: number): Tier {
+  if (accuracy >= 0.95) return 'perfect';
+  if (accuracy >= 0.8) return 'great';
+  if (accuracy >= 0.55) return 'good';
+  return 'sloppy';
+}
+
+export function lowerTier(a: Tier, b: Tier): Tier {
+  return TIER_RANK[a] <= TIER_RANK[b] ? a : b;
+}
 
 const TIER_MULT: Record<Tier, number> = {
   perfect: 1.5,
   great: 1.2,
   good: 1.0,
+  sloppy: 0.5,
 };
 
 const ATTACK_COMBO_MULT: Record<number, number> = { 1: 1.0, 2: 1.6, 3: 2.2 };
@@ -191,6 +210,8 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   let firstSpawnAt = 0;
   let correctChars = 0;
   let mistakes = 0;
+  let wordCorrect = 0; // correct keystrokes on the current spawn (for accuracy cap)
+  let wordMistakes = 0; // wrong keystrokes on the current spawn
   let lastWord: string | undefined; // avoid spawning the same word twice in a row
   let lastPhrase: string | undefined; // avoid repeating a boss sentence back-to-back
   let wordKind: WordKind = 'normal'; // the current spawn's special kind
@@ -204,13 +225,13 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
   let lastLoopAt = 0; // previous frame time, for the Overdrive pause delta
 
   const MOMENTUM_MAX = 10;
-  const MOMENTUM_GAIN: Record<Tier, number> = { perfect: 3, great: 2, good: 1 };
+  const MOMENTUM_GAIN: Record<Tier, number> = { perfect: 3, great: 2, good: 1, sloppy: 0 };
   const OVERDRIVE_MS = 6000;
   const OVERDRIVE_DAMAGE = 1.5;
   const OVERDRIVE_SLOW = 1.2; // incoming words take this much longer
   const AFFLICT_WORDS = 3; // how many words a foe's affliction debuffs
   const MANA_MAX = 6; // 3 Perfects, 6 Greats, or any mix charges an invocation
-  const MANA_GAIN: Record<Tier, number> = { perfect: 2, great: 1, good: 0 };
+  const MANA_GAIN: Record<Tier, number> = { perfect: 2, great: 1, good: 0, sloppy: 0 };
   const overdriveDuration = OVERDRIVE_MS + relic.overdriveBonusMs; // relic Warbanner extends it
 
   // Enemy status effects + per-class passive bookkeeping
@@ -332,6 +353,8 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     }
     state.word = phrase;
     state.typed = '';
+    wordCorrect = 0;
+    wordMistakes = 0;
     state.wordSpawnedAt = performance.now();
     const overdriveSlow = overdriveActive() ? OVERDRIVE_SLOW : 1;
     state.wordDuration = Math.max(
@@ -407,12 +430,14 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     if (keyLower === expectedLower) {
       state.typed += expected;
       correctChars += 1;
+      wordCorrect += 1;
       sfxType();
       renderWord();
       if (state.typed.length === state.word.length) {
         resolveCompletion();
       }
     } else {
+      wordMistakes += 1;
       mistakes += 1;
       if (wordKind === 'spell') {
         fizzleSpell();
@@ -442,7 +467,10 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     }
     const elapsed = performance.now() - state.wordSpawnedAt;
     const progress = elapsed / state.wordDuration;
-    const tier = classifyTier(progress);
+    // Speed sets the tier, but per-word accuracy caps it — a mashed word lands
+    // as a weak (or Sloppy) strike no matter how fast it completed.
+    const accuracy = wordCorrect / (wordCorrect + wordMistakes);
+    const tier = lowerTier(classifyTier(progress), accuracyCap(accuracy));
     let comboMult = ATTACK_COMBO_MULT[state.wordCount] ?? 1;
     if (state.wordCount > 1) comboMult += player.comboBonus;
     let dmg = BASE_DAMAGE * TIER_MULT[tier] * comboMult * player.atkMult;
@@ -865,7 +893,13 @@ export function mountFight(host: HTMLElement, props: FightProps): () => void {
     if (tier && tier !== 'good') node.classList.add(`tier-${tier}`);
     if (crit) node.classList.add('crit');
     const tierLabel =
-      tier === 'perfect' ? t('tier_perfect') : tier === 'great' ? t('tier_great') : '';
+      tier === 'perfect'
+        ? t('tier_perfect')
+        : tier === 'great'
+          ? t('tier_great')
+          : tier === 'sloppy'
+            ? t('tier_sloppy')
+            : '';
     const amountText = crit ? `-${dmg} ✦` : `-${dmg}`;
     if (tierLabel) {
       const label = document.createElement('span');
