@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { EVENT_IDS, findEvent, pickEvent, resolveEvent } from './events';
+import { EVENT_IDS, findEvent, pickEvent, resolveRite } from './events';
+import { findCharm } from './charms';
 import { streamFor } from './rng';
 import type { PlayerStats } from './state';
 
@@ -38,44 +39,38 @@ describe('pickEvent', () => {
   });
 });
 
-describe('resolveEvent', () => {
-  it('a flawless completion heals more and grants a buff', () => {
+describe('resolveRite', () => {
+  it('grants a blessing charm on success', () => {
     const p = hurtStats();
-    const reward = resolveEvent(p, 'shrine', { completed: true, flawless: true });
-    expect(reward.outcome).toBe('blessing');
-    expect(reward.healed).toBeGreaterThan(0);
-    expect(reward.buffKey).toBe('event_buff_regen');
+    const result = resolveRite(p, 'shrine', true);
+    expect(result.kind).toBe('blessing');
+    expect(findCharm(result.charmId).kind).toBe('blessing');
+    // Sanctified: +2 regen and a heal.
     expect(p.regen).toBe(2);
     expect(p.hp).toBeGreaterThan(50);
   });
 
-  it('a stumble heals a little and grants no buff', () => {
+  it('inflicts a scar charm on failure', () => {
     const p = hurtStats();
-    const reward = resolveEvent(p, 'oath_stone', { completed: true, flawless: false });
-    expect(reward.outcome).toBe('faint');
-    expect(reward.buffKey).toBeNull();
-    expect(p.defense).toBe(0);
-    expect(p.hp).toBeGreaterThan(50);
+    const result = resolveRite(p, 'shrine', false);
+    expect(result.kind).toBe('scar');
+    expect(findCharm(result.charmId).kind).toBe('scar');
+    // Forsaken: -12 max HP.
+    expect(p.maxHP).toBe(88);
+    expect(p.hp).toBeLessThanOrEqual(88);
   });
 
-  it('walking away changes nothing', () => {
-    const p = hurtStats();
-    const reward = resolveEvent(p, 'shrine', { completed: false, flawless: false });
-    expect(reward.outcome).toBe('skipped');
-    expect(reward.healed).toBe(0);
-    expect(p.hp).toBe(50);
-    expect(p.regen).toBe(0);
-  });
-
-  it('never heals past max HP', () => {
-    const p = hurtStats();
-    p.hp = 95;
-    const reward = resolveEvent(p, 'shrine', { completed: true, flawless: true });
-    expect(p.hp).toBe(100);
-    expect(reward.healed).toBe(5);
+  it('pairs each event with a distinct blessing and scar', () => {
+    for (const id of EVENT_IDS) {
+      const bless = resolveRite(hurtStats(), id, true);
+      const scar = resolveRite(hurtStats(), id, false);
+      expect(bless.kind).toBe('blessing');
+      expect(scar.kind).toBe('scar');
+      expect(bless.charmId).not.toBe(scar.charmId);
+    }
   });
 
   it('throws on an unknown event id', () => {
-    expect(() => resolveEvent(hurtStats(), 'nope', { completed: true, flawless: true })).toThrow();
+    expect(() => resolveRite(hurtStats(), 'nope', true)).toThrow();
   });
 });

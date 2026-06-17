@@ -16,6 +16,7 @@ import { mountEventScreen } from './eventscreen';
 import { pickEvent, type StoryEvent } from './events';
 import { mountRelicDraft } from './relicdraft';
 import { applyRelic, drawRelics, findRelic, relicEffects } from './relics';
+import { findCharm } from './charms';
 import { mountClassSelect } from './classselect';
 import { mountModeSelect, type ModeChoice } from './modeselect';
 import { mountCustomSeed } from './customseed';
@@ -395,6 +396,12 @@ function renderBuildBar(run: RunState) {
       return `<span class="bb-relic" title="${t(r.nameKey)}">${r.icon}</span>`;
     })
     .join('');
+  const charmIcons = (run.charms ?? [])
+    .map((id) => {
+      const c = findCharm(id);
+      return `<span class="bb-charm bb-charm-${c.kind}" title="${t(c.nameKey)}">${c.icon}</span>`;
+    })
+    .join('');
   const sub = run.subclassId
     ? `<span class="bb-sub">${t(findSubclass(run.subclassId).nameKey)}</span>`
     : '';
@@ -403,7 +410,7 @@ function renderBuildBar(run: RunState) {
     <span class="bb-stats">${statChips}</span>
     <span class="bb-grow"></span>
     ${sub}
-    <span class="bb-icons">${sets}${relicIcons}</span>
+    <span class="bb-icons">${sets}${relicIcons}${charmIcons}</span>
   `;
   buildBar.hidden = false;
 }
@@ -467,6 +474,7 @@ function showEncounter(run: RunState) {
       appliedHeal: applied.healed,
       appliedMaxHP: applied.maxBoosted,
       relics: run.relics ?? [],
+      charms: run.charms ?? [],
       onStart: () => showFight(run),
     }),
   );
@@ -625,7 +633,10 @@ function showEvent(run: RunState, event: StoryEvent) {
     mountEventScreen(host, {
       event,
       player: run.player,
-      onDone: () => enterBranch(run),
+      onDone: (charmId) => {
+        if (charmId) run.charms = [...(run.charms ?? []), charmId];
+        enterBranch(run);
+      },
     }),
   );
   renderBuildBar(run);

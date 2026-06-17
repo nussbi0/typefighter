@@ -262,6 +262,12 @@ body {
 .bb-set {
   filter: drop-shadow(0 0 4px color-mix(in srgb, var(--school, var(--gold-dim)) 60%, transparent));
 }
+.bb-charm-blessing {
+  filter: drop-shadow(0 0 4px rgba(243, 197, 74, 0.7));
+}
+.bb-charm-scar {
+  filter: grayscale(0.3) drop-shadow(0 0 4px rgba(146, 30, 30, 0.6));
+}
 
 @media (max-width: 560px) {
   .build-bar {
@@ -2828,9 +2834,28 @@ body {
 .event-result[data-outcome='passed'] {
   color: var(--ink-muted);
 }
+.event-result[data-outcome='blessing'] {
+  color: var(--gold-bright);
+  text-shadow: 0 0 14px rgba(243, 197, 74, 0.55);
+}
+.event-result[data-outcome='scar'] {
+  color: var(--crimson-light);
+  text-shadow: 0 0 14px rgba(146, 30, 30, 0.5);
+}
 
-.event-skip {
-  margin-top: 2px;
+/* Rite choice — commit to the gamble or walk on. */
+.event-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.event-warning {
+  margin: 2px 0 0;
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--ink-muted);
 }
 
 /* Ascension — choose a subclass mid-run. Reuses boon-card styling. */
@@ -2935,6 +2960,17 @@ body {
   background: rgba(243, 197, 74, 0.12);
   border: 1px solid var(--gold-dim);
   border-radius: 999px;
+}
+/* Blessings and scars share the relic chip shape, tinted by polarity. */
+.relic-chip.charm-chip-blessing {
+  color: var(--forest);
+  background: rgba(47, 77, 34, 0.14);
+  border-color: var(--forest);
+}
+.relic-chip.charm-chip-scar {
+  color: var(--crimson-light);
+  background: rgba(146, 30, 30, 0.14);
+  border-color: var(--crimson-light);
 }
 
 /* Phoenix Feather proc floater. */

@@ -50,6 +50,8 @@ export interface RunState {
   subclassId?: string;
   // Relic ids drafted from elite victories.
   relics?: string[];
+  // Charm ids (blessings + scars) won or suffered at story-event rites.
+  charms?: string[];
 }
 
 const STARTING_HP = 100;

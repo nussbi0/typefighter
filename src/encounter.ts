@@ -2,6 +2,7 @@ import { t, onLocaleChange, renderTextWithDropCap } from './i18n';
 import { deedLine, eliteModifierLine, enemyAbilities, RUN_LENGTH, type Enemy } from './enemies';
 import { combatStatLines, type PlayerStats } from './state';
 import { findRelic } from './relics';
+import { findCharm } from './charms';
 
 function abilityTagsHTML(enemy: Enemy): string {
   const lines = [...enemyAbilities(enemy)];
@@ -26,6 +27,7 @@ export interface EncounterProps {
   appliedHeal?: number;
   appliedMaxHP?: number;
   relics?: string[];
+  charms?: string[];
   onStart: () => void;
 }
 
@@ -46,6 +48,7 @@ export function mountEncounter(host: HTMLElement, props: EncounterProps): () => 
     appliedHeal = 0,
     appliedMaxHP = 0,
     relics = [],
+    charms = [],
     onStart,
   } = props;
 
@@ -130,12 +133,16 @@ export function mountEncounter(host: HTMLElement, props: EncounterProps): () => 
       }
     });
     abilitiesEl.innerHTML = abilityTagsHTML(enemy);
-    relicEl.innerHTML = relics
-      .map((id) => {
+    relicEl.innerHTML = [
+      ...relics.map((id) => {
         const r = findRelic(id);
         return `<span class="relic-chip" title="${t(r.descKey)}">${r.icon} ${t(r.nameKey)}</span>`;
-      })
-      .join('');
+      }),
+      ...charms.map((id) => {
+        const c = findCharm(id);
+        return `<span class="relic-chip charm-chip-${c.kind}" title="${t(c.descKey)}">${c.icon} ${t(c.nameKey)}</span>`;
+      }),
+    ].join('');
     if (enemy.elite && enemy.eliteName) renderTextWithDropCap(nameEl, enemy.eliteName);
     const deed = deedLine(enemy);
     deedEl.innerHTML = deed
